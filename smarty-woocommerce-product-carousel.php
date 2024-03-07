@@ -165,6 +165,15 @@ if (!function_exists('smarty_register_settings')) {
         add_settings_field('smarty_dot_color', 'Dot Color', 'smarty_dot_color_callback', 'smarty-settings-group', 'smarty_carousel_settings');
         add_settings_field('smarty_slide_padding', 'Slide Padding', 'smarty_slide_padding_callback', 'smarty-settings-group', 'smarty_carousel_settings');
         add_settings_field('smarty_autoplay_indicator', 'Autoplay Indicator', 'smarty_autoplay_indicator_callback', 'smarty-settings-group', 'smarty_carousel_settings');
+        
+        // Add a field for custom CSS
+        add_settings_field(
+            'smarty_custom_css',            // ID
+            'Custom CSS',                   // Title
+            'smarty_custom_css_callback',   // Callback function
+            'smarty-settings-group',        // Page
+            'smarty_carousel_settings'      // Section
+        );
     }
     add_action('admin_init', 'smarty_register_settings');
 }
@@ -215,6 +224,27 @@ if (!function_exists('smarty_autoplay_indicator_callback')) {
     }
 }
 
+if (!function_exists('smarty_custom_css_callback')) {
+    function smarty_custom_css_callback() {
+        $options = get_option('smarty_carousel_options');
+        $custom_css = isset($options['custom_css']) ? $options['custom_css'] : '';
+        echo '<textarea id="smarty_custom_css" name="smarty_carousel_options[custom_css]" rows="10" cols="50" class="large-text code">' . esc_textarea($custom_css) . '</textarea>';
+        echo '<p class="description">' . __('Add custom CSS for the carousel here.', 'smarty-woocommerce-product-carousel') . '</p>';
+    }
+}
+
+if (!function_exists('smarty_print_custom_css')) {
+    function smarty_print_custom_css() {
+        $options = get_option('smarty_carousel_options');
+        if (!empty($options['custom_css'])) {
+            echo '<style type="text/css">' . "\n";
+            echo $options['custom_css'] . "\n";
+            echo '</style>' . "\n";
+        }
+    }
+    add_action('wp_head', 'smarty_print_custom_css');
+}
+
 if (!function_exists('smarty_save_settings')) {
     function smarty_save_settings() {
         // Check if our nonce is set.
@@ -236,6 +266,7 @@ if (!function_exists('smarty_save_settings')) {
         $safe_options['dot_color'] = isset($options['dot_color']) ? sanitize_hex_color($options['dot_color']) : '';
         $safe_options['slide_padding'] = isset($options['slide_padding']) ? intval($options['slide_padding']) : 0;
         $safe_options['autoplay_indicator'] = isset($options['autoplay_indicator']) ? filter_var($options['autoplay_indicator'], FILTER_VALIDATE_BOOLEAN) : false;
+        $safe_options['custom_css'] = isset($options['custom_css']) ? wp_strip_all_tags($options['custom_css']) : '';
         $safe_options['products'] = isset($options['products']) ? array_map('sanitize_text_field', $options['products']) : [];
 
         // Update the entire options array
@@ -281,8 +312,14 @@ if (!function_exists('smarty_search_products')) {
 
 if (!function_exists('smarty_product_carousel_shortcode')) {
     function smarty_product_carousel_shortcode($atts) {
+        $options = get_option('smarty_carousel_options');
+        $saved_ids = isset($options['products']) ? $options['products'] : [];
+        $saved_arrow_color = isset($options['arrow_color']) ? $options['arrow_color'] : '';
+        $saved_dot_color = isset($options['dot_color']) ? $options['dot_color'] : '';
+        $saved_slide_padding = isset($options['slide_padding']) ? $options['slide_padding'] : '';
+
         $atts = shortcode_atts(array(
-            'ids'              => '',
+            'ids'              => implode(',', $saved_ids), // Use the saved product IDs by default
             'categories'       => '',
             'skus'             => '',
             'speed'            => '300',
@@ -319,6 +356,12 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         $query = new WC_Product_Query($query_args);
         $products = $query->get_products();
 
+        // Convert autoplay setting to proper boolean
+        $autoplay = isset($options['autoplay_indicator']) && 'true' === $options['autoplay_indicator'] ? 'true' : 'false';
+
+        // Make sure autoplay speed is an integer
+        $autoplay_speed = isset($options['autoplay_speed']) ? intval($options['autoplay_speed']) : 3000;
+
         // Start building carousel HTML
         $carousel_html = '<div class="smarty-carousel">';
 
@@ -339,8 +382,8 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
             jQuery(document).ready(function($) {
                 $('.smarty-carousel').slick({
                     speed: {$atts['speed']},
-                    autoplay: {$atts['autoplay']},
-                    autoplaySpeed: {$atts['autoplay_speed']},
+                    autoplay: {$autoplay},
+                    autoplaySpeed: {$autoplay_speed},
                     slidesToShow: " . intval($atts['slides_to_show']) . ",
                     slidesToScroll: " . intval($atts['slides_to_scroll']) . ",
                     infinite: {$atts['infinite']},
@@ -374,6 +417,17 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                 });
             });
         </script>";
+
+        // Inject saved settings into the inline CSS or JavaScript as needed
+        $custom_css = "
+        <style>
+            .smarty-carousel .slick-prev:before, .smarty-carousel .slick-next:before { color: {$saved_arrow_color}; }
+            .smarty-carousel .slick-dots li button:before { color: {$saved_dot_color}; }
+            .smarty-carousel .product { padding: {$saved_slide_padding}px; }
+        </style>";
+
+        // Include the custom CSS in the output
+        $carousel_html = $custom_css . $carousel_html;
 
         return $carousel_html;
     }
