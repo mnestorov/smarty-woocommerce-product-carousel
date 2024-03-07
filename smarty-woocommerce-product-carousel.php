@@ -18,6 +18,21 @@ if (!defined('WPINC')) {
 	die;
 }
 
+if (!function_exists('smarty_check_woocommerce_exists')) {
+    function smarty_check_woocommerce_exists() {
+        if (!class_exists('WooCommerce')) {
+            add_action('admin_notices', 'smarty_missing_woocommerce_notice');
+        }
+    }
+    add_action('admin_init', 'smarty_check_woocommerce_exists');
+}
+
+if (!function_exists('smarty_missing_woocommerce_notice')) {
+    function smarty_missing_woocommerce_notice(){
+        echo '<div class="error"><p><strong>' . __('SM - WooCommerce Product Carousel requires WooCommerce to be installed and active.', 'smarty-woocommerce-product-carousel') . '</strong></p></div>';
+    }
+}
+
 if (!function_exists('smarty_enqueue_admin_scripts')) {
     /**
      * Enqueue required scripts and styles.
@@ -285,8 +300,8 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                     speed: {$atts['speed']},
                     autoplay: {$atts['autoplay']},
                     autoplaySpeed: {$atts['autoplay_speed']},
-                    slidesToShow: <?php echo intval($atts['slides_to_show']); ?>,
-                    slidesToScroll: <?php echo intval($atts['slides_to_scroll']); ?>,
+                    slidesToShow: " . intval($atts['slides_to_show']) . ",
+                    slidesToScroll: " . intval($atts['slides_to_scroll']) . ",
                     infinite: {$atts['infinite']},
                     adaptiveHeight: {$atts['adaptive_height']},
                     responsive: [
