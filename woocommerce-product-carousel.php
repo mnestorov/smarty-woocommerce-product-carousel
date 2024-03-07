@@ -8,6 +8,7 @@
  * Author URI:  https://smartystudio.net
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain: smarty-woocommerce-product-carousel
  * 
  * Usage: [smarty_product_carousel ids="1,2,3" speed="500" autoplay="true" autoplay_speed="3000"]
  */
@@ -33,7 +34,7 @@ if (!function_exists('smarty_enqueue_admin_scripts')) {
 
 if (!function_exists('smarty_admin_menu')) {
     function smarty_admin_menu() {
-        add_menu_page('My WooCommerce Product Carousel', 'Product Carousel', 'manage_options', 'smarty-admin-page', 'smarty_admin_page_html');
+        add_menu_page('Product Carousel', 'Product Carousel', 'manage_options', 'smarty-admin-page', 'smarty_admin_page_html');
     }
     add_action('admin_menu', 'smarty_admin_menu');
 }
@@ -42,16 +43,15 @@ if (!function_exists('smarty_admin_page_html')) {
     function smarty_admin_page_html() {
         ?>
         <div class="wrap">
-            <h1>My WooCommerce Product Carousel</h1>
+            <h1><?php __('Product Carousel', 'smarty-woocommerce-product-carousel'); ?></h1>
             <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
                 <input type="hidden" name="action" value="smarty_save_settings">
                 <?php
                 wp_nonce_field('smarty_save_settings_action', 'smarty_settings_nonce');
-                settings_fields('smarty-settings-group'); // Replace with your settings group
+                settings_fields('smarty-settings-group');
                 do_settings_sections('smarty-settings-group');
                 submit_button();
                 ?>
-                <!-- Add your form fields here -->
                 <select id="smarty-product-search" name="products[]" multiple="multiple" style="width: 50%"></select>
                 <?php submit_button('Save Settings'); ?>
             </form>
@@ -115,9 +115,9 @@ if (!function_exists('smarty_search_products')) {
         $term = isset($_GET['q']) ? sanitize_text_field($_GET['q']) : '';
 
         $query_args = array(
-            'post_type' => 'product',
-            'post_status' => 'publish',
-            's' => $term,
+            'post_type'      => 'product',
+            'post_status'    => 'publish',
+            's'              => $term,
             'posts_per_page' => -1,
         );
 
@@ -141,20 +141,18 @@ if (!function_exists('smarty_search_products')) {
 
 if (!function_exists('smarty_product_carousel_shortcode')) {
     function smarty_product_carousel_shortcode($atts) {
-        // Extend default attributes with new carousel settings
         $atts = shortcode_atts(array(
-            'ids' => '',
-            'categories' => '',
-            'skus' => '',
-            'speed' => '300', // Default speed in milliseconds
-            'autoplay' => 'false', // Default autoplay (true or false)
-            'autoplay_speed' => '5000', // Default autoplay speed in milliseconds
-            // Add other carousel settings as needed
+            'ids'            => '',
+            'categories'     => '',
+            'skus'           => '',
+            'speed'          => '300',   // Default speed in milliseconds
+            'autoplay'       => 'false', // Default autoplay (true or false)
+            'autoplay_speed' => '5000',  // Default autoplay speed in milliseconds
         ), $atts, 'smarty_product_carousel');
 
         // Prepare query arguments based on shortcode attributes
         $query_args = array(
-            'limit' => -1,
+            'limit'  => -1,
             'status' => 'publish',
         );
 
