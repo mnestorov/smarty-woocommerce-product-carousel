@@ -33,14 +33,20 @@ if (!function_exists('smarty_missing_woocommerce_notice')) {
     }
 }
 
+if (!function_exists('smarty_enqueue_slick_carousel')) {
+    function smarty_enqueue_slick_carousel() {
+        wp_enqueue_script('slick-js', 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js', array('jquery'), '1.8.1', true);
+        wp_enqueue_style('slick-css', 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css');
+        wp_enqueue_style('slick-theme-css', 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css');
+    }
+    add_action('wp_enqueue_scripts', 'smarty_enqueue_slick_carousel');
+}
+
 if (!function_exists('smarty_enqueue_admin_scripts')) {
     /**
      * Enqueue required scripts and styles.
      */
     function smarty_enqueue_admin_scripts($hook) {
-        wp_enqueue_script('slick', 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js', array('jquery'), '1.8.1', true);
-        wp_enqueue_style('slick', 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css');
-        wp_enqueue_style('slick-theme', 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css');
         wp_enqueue_script('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js', array('jquery'), '4.0.13', true);
         wp_enqueue_style('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css');
 
@@ -77,19 +83,43 @@ if (!function_exists('smarty_admin_page_html')) {
      * Admin page HTML content.
      */
     function smarty_admin_page_html() {
+        // Fetch the selected products before the select element
+        $options = get_option('smarty_carousel_options');
+        $selected_products = isset($options['products']) ? $options['products'] : [];
         ?>
         <div class="wrap">
-            <h1><?php echo esc_html(__('Product Carousel', 'smarty-woocommerce-product-carousel')); ?></h1>
-            <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
-                <input type="hidden" name="action" value="smarty_save_settings">
+            <h1><?php echo esc_html(__('Product Carousel | Settings', 'smarty-woocommerce-product-carousel')); ?></h1>
+            <form method="post" action="options.php">
                 <?php
                 wp_nonce_field('smarty_save_settings_action', 'smarty_settings_nonce');
                 settings_fields('smarty-settings-group');
                 do_settings_sections('smarty-settings-group');
-                submit_button();
                 ?>
-                <select id="smarty-product-search" name="products[]" multiple="multiple" style="width: 50%"></select>
-                <?php submit_button('Save Settings'); ?>
+                
+                <h2><?php echo __('Products', 'smarty-woocommerce-product-carousel'); ?></h2>
+                <p><?php echo __('Select products to add to the carousel.', 'smarty-woocommerce-product-carousel'); ?></p>
+                <table class="form-table">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><label for="smarty-product-search"><?php echo esc_html__('Select Products', 'smarty-woocommerce-product-carousel'); ?></label></th>
+                            <td>
+                                <select id="smarty-product-search" name="smarty_carousel_options[products][]" multiple="multiple" style="width: 50%">
+                                <?php
+                                    foreach ($selected_products as $product_id) {
+                                        $product = wc_get_product($product_id);
+                                        if ($product) {
+                                            echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . esc_html($product->get_name()) . '</option>';
+                                        }
+                                    }
+                                ?>
+                                </select>
+                                <p class="description"><?php echo esc_html__('Select products to display in the carousel.', 'smarty-woocommerce-product-carousel'); ?></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <?php submit_button(); ?>
             </form>
         </div>
 
@@ -129,7 +159,7 @@ if (!function_exists('smarty_register_settings')) {
     function smarty_register_settings() {
         register_setting('smarty-settings-group', 'smarty_carousel_options', 'smarty_options_sanitize');
 
-        add_settings_section('smarty_carousel_settings', 'Carousel Settings', 'smarty_carousel_settings_section_callback', 'smarty-settings-group');
+        add_settings_section('smarty_carousel_settings', 'General', 'smarty_carousel_settings_section_callback', 'smarty-settings-group');
 
         add_settings_field('smarty_arrow_color', 'Arrow Color', 'smarty_arrow_color_callback', 'smarty-settings-group', 'smarty_carousel_settings');
         add_settings_field('smarty_dot_color', 'Dot Color', 'smarty_dot_color_callback', 'smarty-settings-group', 'smarty_carousel_settings');
@@ -194,14 +224,25 @@ if (!function_exists('smarty_save_settings')) {
 
         // Verify the nonce.
         if (!wp_verify_nonce($_POST['smarty_settings_nonce'], 'smarty_save_settings_action')) {
-            wp_die('Security check failed');
+            wp_die('Nonce verification failed', 'Invalid Request', array('response' => 403));
         }
 
-        // Process form data and save settings here
-        // For example, update_option('smarty_option', sanitize_text_field($_POST['some_field']));
+        // Ensure we're getting the correct options array from the form
+        $options = isset($_POST['smarty_carousel_options']) ? $_POST['smarty_carousel_options'] : [];
+
+        // Sanitize and save each option manually
+        $safe_options = [];
+        $safe_options['arrow_color'] = isset($options['arrow_color']) ? sanitize_hex_color($options['arrow_color']) : '';
+        $safe_options['dot_color'] = isset($options['dot_color']) ? sanitize_hex_color($options['dot_color']) : '';
+        $safe_options['slide_padding'] = isset($options['slide_padding']) ? intval($options['slide_padding']) : 0;
+        $safe_options['autoplay_indicator'] = isset($options['autoplay_indicator']) ? filter_var($options['autoplay_indicator'], FILTER_VALIDATE_BOOLEAN) : false;
+        $safe_options['products'] = isset($options['products']) ? array_map('sanitize_text_field', $options['products']) : [];
+
+        // Update the entire options array
+        update_option('smarty_carousel_options', $safe_options);
 
         // Redirect back to settings page
-        wp_redirect(html_entity_decode(wp_get_referer()));
+        wp_redirect(add_query_arg('page', 'smarty-admin-page', admin_url('admin.php')));
         exit;
     }
     add_action('admin_post_smarty_save_settings', 'smarty_save_settings');
