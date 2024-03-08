@@ -199,6 +199,22 @@ if (!function_exists('smarty_register_settings')) {
             'smarty-settings-group',                // Page
             'smarty_carousel_settings'              // Section
         );
+
+        add_settings_field(
+            'smarty_slides_to_show',                // ID
+            'Slides to Show',                       // Title
+            'smarty_slides_to_show_callback',       // Callback function
+            'smarty-settings-group',                // Page
+            'smarty_carousel_settings'              // Section
+        );
+
+        add_settings_field(
+            'smarty_slides_to_scroll',              // ID
+            'Slides to Scroll',                     // Title
+            'smarty_slides_to_scroll_callback',     // Callback function
+            'smarty-settings-group',                // Page
+            'smarty_carousel_settings'              // Section
+        );
         
         add_settings_field(
             'smarty_slide_padding',                 // ID
@@ -272,7 +288,9 @@ if (!function_exists('smarty_display_arrows_callback')) {
 if (!function_exists('smarty_arrow_color_callback')) {
     function smarty_arrow_color_callback() {
         $options = get_option('smarty_carousel_options'); ?>
-        <input type="text" name="smarty_carousel_options[smarty_arrow_color]" value="<?php echo esc_attr($options['smarty_arrow_color'] ?? ''); ?>" class="regular-text"><?php
+        <input type="text" name="smarty_carousel_options[smarty_arrow_color]" value="<?php echo esc_attr($options['smarty_arrow_color'] ?? ''); ?>" class="regular-text">
+        <p class="description"><?php echo __('Example: #cc0000', 'smarty-woocommerce-product-carousel'); ?></p>
+        <?php
     }
 }
 
@@ -290,7 +308,29 @@ if (!function_exists('smarty_display_dots_callback')) {
 if (!function_exists('smarty_dot_color_callback')) {
     function smarty_dot_color_callback() {
         $options = get_option('smarty_carousel_options'); ?>
-        <input type="text" name="smarty_carousel_options[smarty_dot_color]" value="<?php echo esc_attr($options['smarty_dot_color'] ?? ''); ?>" class="regular-text"><?php
+        <input type="text" name="smarty_carousel_options[smarty_dot_color]" value="<?php echo esc_attr($options['smarty_dot_color'] ?? ''); ?>" class="regular-text">
+        <p class="description"><?php echo __('Example: #cc0000', 'smarty-woocommerce-product-carousel'); ?></p>
+        <?php
+    }
+}
+
+if (!function_exists('smarty_slides_to_show_callback')) {
+    function smarty_slides_to_show_callback() {
+        $options = get_option('smarty_carousel_options');
+        $value = isset($options['smarty_slides_to_show']) ? $options['smarty_slides_to_show'] : '3'; ?>
+        <input type='number' name='smarty_carousel_options[smarty_slides_to_show]' value='<?php echo esc_attr($value); ?>' min='1' class="small-text" />
+        <p class="description"><?php echo __('Set the default slides to show.', 'smarty-woocommerce-product-carousel'); ?></p>
+        <?php
+    }
+}
+
+if (!function_exists('smarty_slides_to_scroll_callback')) {
+    function smarty_slides_to_scroll_callback() {
+        $options = get_option('smarty_carousel_options');
+        $value = isset($options['smarty_slides_to_scroll']) ? $options['smarty_slides_to_scroll'] : '1'; ?>
+        <input type='number' name='smarty_carousel_options[smarty_slides_to_scroll]' value='<?php echo esc_attr($value); ?>' min='1' class="small-text" />
+        <p class="description"><?php echo __('Set the default slides to scroll.', 'smarty-woocommerce-product-carousel'); ?></p>
+        <?php
     }
 }
 
@@ -402,6 +442,8 @@ if (!function_exists('smarty_save_settings')) {
         $safe_options['smarty_arrow_color'] = isset($options['smarty_arrow_color']) ? sanitize_hex_color($options['smarty_arrow_color']) : '';
         $safe_options['smarty_dot_color'] = isset($options['smarty_dot_color']) ? sanitize_hex_color($options['smarty_dot_color']) : '';
         $safe_options['smarty_slide_padding'] = isset($options['smarty_slide_padding']) ? intval($options['smarty_slide_padding']) : 0;
+        $safe_options['smarty_slides_to_show'] = isset($options['smarty_slides_to_show']) ? intval($options['smarty_slides_to_show']) : '3';
+        $safe_options['smarty_slides_to_scroll'] =  isset($options['smarty_slides_to_scroll']) ? intval($options['smarty_slides_to_scroll']) : '1';
         $safe_options['smarty_speed'] = isset($options['smarty_speed']) ? intval($options['smarty_speed']) : 0;
         $safe_options['smarty_autoplay_indicator'] = isset($options['smarty_autoplay_indicator']) ? filter_var($options['smarty_autoplay_indicator'], FILTER_VALIDATE_BOOLEAN) : false;
         $safe_options['smarty_autoplay_speed'] = isset($options['smarty_autoplay_speed']) ? intval($options['smarty_autoplay_speed']) : 0;
@@ -460,6 +502,8 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         $display_dots = isset($options['smarty_display_dots']) && $options['smarty_display_dots'] ? 'true' : 'false';
         $saved_dot_color = isset($options['smarty_dot_color']) ? $options['smarty_dot_color'] : '';
         $saved_slide_padding = isset($options['smarty_slide_padding']) ? $options['smarty_slide_padding'] : '';
+        $slides_to_show = isset($options['smarty_slides_to_show']) ? $options['smarty_slides_to_show'] : '3';
+        $slides_to_scroll = isset($options['smarty_slides_to_scroll']) ? $options['smarty_slides_to_scroll'] : '1';
         $speed = isset($options['smarty_speed']) ? $options['smarty_speed'] : '300';
         $autoplay = isset($options['smarty_autoplay_indicator']) && $options['smarty_autoplay_indicator'] ? 'true' : 'false';
         $autoplay_speed = isset($options['smarty_autoplay_speed']) ? $options['smarty_autoplay_speed'] : '3000';
@@ -497,8 +541,8 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                     speed: " . intval($speed) . ",
                     autoplay: {$autoplay},
                     autoplaySpeed: " . intval($autoplay_speed) . ",
-                    slidesToShow: 3,
-                    slidesToScroll: 1,
+                    slidesToShow: " . intval($options['smarty_slides_to_show']) . ",
+                    slidesToScroll: " . intval($options['smarty_slides_to_scroll']) . ",
                     infinite: {$infinite},
                     adaptiveHeight: 'false',
                     arrows: {$display_arrows},
