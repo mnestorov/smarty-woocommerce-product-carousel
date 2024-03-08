@@ -287,13 +287,13 @@ if (!function_exists('smarty_register_settings')) {
 
 if (!function_exists('smarty_carousel_settings_section_callback')) {
     function smarty_carousel_settings_section_callback() { ?>
-        <p><?php echo __('Customize the appearance and behavior of the WooCommerce product carousel.', 'smarty-woocommerce-product-carousel'); ?></p><?php 
+        <p><?php echo __('Customize the appearance and behavior of the WooCommerce products carousel.', 'smarty-woocommerce-product-carousel'); ?></p><?php 
     }
 }
 
 if (!function_exists('smarty_carousel_styling_section_callback')) {
     function smarty_carousel_styling_section_callback() {
-        echo '<p>Customize the appearance of the product carousel with your own CSS. Add styles that will be applied directly to the carousel, giving you the flexibility to tailor its look and feel to match your site\'s design. Whether you need to adjust the padding, colors, or any other aspect, the Custom CSS field is your canvas.</p>';
+        echo '<p>Customize the appearance of the products carousel with your own CSS. Add styles that will be applied directly to the carousel, giving you the flexibility to tailor its look and feel to match your site\'s design. Whether you need to adjust the padding, colors, or any other aspect, the Custom CSS field is your canvas.</p>';
     }
 }
 
