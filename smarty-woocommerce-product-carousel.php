@@ -133,7 +133,7 @@ if (!function_exists('smarty_admin_page_html')) {
                     data: function (params) {
                         return {
                             q: params.term, // search term
-                            action: 'smarty_search_bproducts' // WordPress AJAX action
+                            action: 'smarty_search_products' // WordPress AJAX action
                         };
                     },
                     processResults: function (data) {
