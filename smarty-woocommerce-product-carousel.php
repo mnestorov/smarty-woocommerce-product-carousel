@@ -73,7 +73,14 @@ if (!function_exists('smarty_admin_menu')) {
      * Add admin menu for plugin settings.
      */
     function smarty_admin_menu() {
-        add_menu_page('Product Carousel', 'Product Carousel', 'manage_options', 'smarty-admin-page', 'smarty_admin_page_html', 'dashicons-images-alt2');
+        add_submenu_page(
+            'woocommerce',              // The slug name for the parent menu (or the file name of a standard WordPress admin page)
+            'Products Carousel',        // The text to be displayed in the title tags of the page when the menu is selected
+            'Products Carousel',        // The text to be used for the menu
+            'manage_options',           // The capability required for this menu to be displayed to the user
+            'smarty-products-carousel', // The slug name to refer to this menu by (should be unique for this menu)
+            'smarty_admin_page_html'    // The function to be called to output the content for this page
+        );
     }
     add_action('admin_menu', 'smarty_admin_menu');
 }
@@ -88,7 +95,7 @@ if (!function_exists('smarty_admin_page_html')) {
         $selected_products = isset($options['products']) ? $options['products'] : [];
         ?>
         <div class="wrap">
-            <h1><?php echo esc_html(__('Product Carousel | Settings', 'smarty-woocommerce-product-carousel')); ?></h1>
+            <h1><?php echo esc_html(__('Products Carousel | Settings', 'smarty-woocommerce-product-carousel')); ?></h1>
             <form method="post" action="options.php">
                 <?php
                 wp_nonce_field('smarty_save_settings_action', 'smarty_settings_nonce');
@@ -103,12 +110,15 @@ if (!function_exists('smarty_admin_page_html')) {
                         <tr>
                             <th scope="row"><label for="smarty-product-search"><?php echo esc_html__('Select Products', 'smarty-woocommerce-product-carousel'); ?></label></th>
                             <td>
-                                <select id="smarty-product-search" name="smarty_carousel_options[products][]" multiple="multiple" style="width: 50%">
+                                <select id="smarty-product-search" name="smarty_carousel_options[products][]" multiple="multiple" style="width: 100%">
                                 <?php
                                     foreach ($selected_products as $product_id) {
                                         $product = wc_get_product($product_id);
+                                        
                                         if ($product) {
-                                            echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . esc_html($product->get_name()) . '</option>';
+                                            // Format the option text to include both product name and ID
+                                            $option_text = sprintf('%s (ID: %d)', $product->get_name(), $product_id);
+                                            echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . esc_html($option_text) . '</option>';
                                         }
                                     }
                                 ?>
@@ -163,6 +173,13 @@ if (!function_exists('smarty_register_settings')) {
             'smarty_carousel_settings', 
             'General', 
             'smarty_carousel_settings_section_callback', 
+            'smarty-settings-group'
+        );
+
+        add_settings_section(
+            'smarty_carousel_styling', 
+            'Styling', 
+            'smarty_carousel_styling_section_callback', 
             'smarty-settings-group'
         );
 
@@ -262,7 +279,7 @@ if (!function_exists('smarty_register_settings')) {
             'Custom CSS',                           // Title
             'smarty_custom_css_callback',           // Callback function
             'smarty-settings-group',                // Page
-            'smarty_carousel_settings'              // Section
+            'smarty_carousel_styling'               // Section
         );
     }
     add_action('admin_init', 'smarty_register_settings');
@@ -271,6 +288,12 @@ if (!function_exists('smarty_register_settings')) {
 if (!function_exists('smarty_carousel_settings_section_callback')) {
     function smarty_carousel_settings_section_callback() { ?>
         <p><?php echo __('Customize the appearance and behavior of the WooCommerce product carousel.', 'smarty-woocommerce-product-carousel'); ?></p><?php 
+    }
+}
+
+if (!function_exists('smarty_carousel_styling_section_callback')) {
+    function smarty_carousel_styling_section_callback() {
+        echo '<p>Customize the appearance of the product carousel with your own CSS. Add styles that will be applied directly to the carousel, giving you the flexibility to tailor its look and feel to match your site\'s design. Whether you need to adjust the padding, colors, or any other aspect, the Custom CSS field is your canvas.</p>';
     }
 }
 
@@ -482,7 +505,7 @@ if (!function_exists('smarty_search_products')) {
                 $query->the_post();
                 $results[] = array(
                     'id' => get_the_ID(),
-                    'text' => get_the_title(),
+                    'text' => get_the_title() . ' (ID: ' . get_the_ID() . ')',
                 );
             }
         }
