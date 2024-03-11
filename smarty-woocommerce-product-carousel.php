@@ -547,13 +547,79 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         $carousel_html = '<div class="smarty-carousel">';
 
         foreach ($products as $product) {
-            // You can customize the display here
             $carousel_html .= '<div class="product">';
             $carousel_html .= '<a href="' . get_permalink($product->get_id()) . '">';
+        
+            $max_discount = 0;
+            $max_amount_saved = 0;
+
+            if ($product->is_type('variable')) {
+
+                $variations = $product->get_available_variations();
+
+                foreach ($variations as $variation) {
+                    $variation_obj = wc_get_product($variation['variation_id']);
+                    if ($variation_obj->is_on_sale()) {
+                        $regular_price = floatval($variation_obj->get_regular_price());
+                        $sale_price = floatval($variation_obj->get_sale_price());
+                        if ($regular_price > 0) { // Ensure there's a valid regular price
+                            $discount_percentage = round((($regular_price - $sale_price) / $regular_price) * 100);
+                            $amount_saved = $regular_price - $sale_price;
+                            if ($discount_percentage > $max_discount) {
+                                $max_discount = $discount_percentage;
+                                $max_amount_saved = $amount_saved;
+                            }
+                        }
+                    }
+                }
+            } else if ($product->is_on_sale()) {
+        
+                $regular_price = floatval($product->get_regular_price());
+                $sale_price = floatval($product->get_sale_price());
+
+                if ($regular_price > 0) { // Ensure there's a valid regular price
+                    $max_discount = round((($regular_price - $sale_price) / $regular_price) * 100);
+                    $max_amount_saved = $regular_price - $sale_price;
+                }
+            }
+        
+            if ($max_discount > 0) {
+                $carousel_html .= "<div class='discount-label'>-{$max_discount}%</div>";
+            }
+        
             $carousel_html .= '<img src="' . wp_get_attachment_url($product->get_image_id()) . '" alt="' . $product->get_name() . '">';
-            $carousel_html .= '<h2>' . $product->get_name() . '</h2>';
             $carousel_html .= '</a>';
-            $carousel_html .= '<span class="price">' . $product->get_price_html() . '</span>';
+            $carousel_html .= '<h2>' . $product->get_name() . '</h2>';
+            $carousel_html .= '<span class="price"><small>' . $product->get_price_html() . '</small></span>';
+            
+            if ($max_discount > 0) {
+                $saved_formatted = wc_price($max_amount_saved);
+                $carousel_html .= "<p class='save-info'>Save {$max_discount}% ($saved_formatted)</p>";
+            }
+
+            // Add to Cart button
+            if ($product->is_type('simple')) {
+                // Simple product: Directly add the product to the cart
+                $add_to_cart_url = '?add-to-cart=' . $product->get_id();
+                $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '">Add to Cart</a>';
+            } elseif ($product->is_type('variable')) {
+                // Variable product: Add the first available variation to the cart
+                $available_variations = $product->get_available_variations();
+                $first_variation_id = $available_variations[0]['variation_id'] ?? 0;
+                if ($first_variation_id > 0) {
+                    $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&variation_id=' . $first_variation_id;
+                    // Automatically selecting the first variation attributes might be required, you can append them to the URL if needed
+                    foreach ($available_variations[0]['attributes'] as $attr_key => $attr_value) {
+                        $add_to_cart_url .= '&' . $attr_key . '=' . $attr_value;
+                    }
+                    $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '" data-variation_id="' . $first_variation_id . '">Add to Cart</a>';
+                } else {
+                    // Fallback link to the product page if no variations are available
+                    $product_url = get_permalink($product->get_id());
+                    $carousel_html .= '<a href="' . esc_url($product_url) . '" class="button">Select Options</a>';
+                }
+            }
+
             $carousel_html .= '</div>';
         }
 
@@ -603,9 +669,70 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         // Inject saved settings into the inline CSS or JavaScript as needed
         $custom_css = "
         <style>
-            .smarty-carousel .slick-prev:before, .smarty-carousel .slick-next:before { color: {$saved_arrow_color}; }
-            .smarty-carousel .slick-dots li button:before { color: {$saved_dot_color}; }
+            .product { position: relative; }
+            .discount-label {
+                position: absolute;
+                top: 0;
+                left: 0;
+                background-color: #ff0000;
+                color: #ffffff;
+                padding: 5px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            .smarty-carousel { text-align: center; }
+            .smarty-carousel .slick-prev,
+            .smarty-carousel .slick-next {
+                font-size: 0; /* Hides the text for arrows */
+                line-height: 0;
+                position: absolute;
+                top: 50%;
+                transform: translate(0, -50%);
+                background: transparent; /* No background */
+                border: none; /* No border */
+                z-index: 25; /* Ensure they are above other content */
+            }
+            /* Adjust arrow positions */
+            .smarty-carousel .slick-prev {
+                left: 25px; /* Distance from the left side */
+                z-index: 1;
+            }
+            .smarty-carousel .slick-next {
+                right: 25px; /* Distance from the right side */
+                z-index: 1;
+            }
+            .smarty-carousel .slick-prev:before, .smarty-carousel .slick-next:before { 
+                font-family: 'slick'; /* Change as needed */
+                font-size: 24px; /* Arrow size */
+                color: {$saved_arrow_color}; 
+                color: #444;
+                line-height: 1;
+                opacity: 1; /* Make sure it's visible */
+            }
+            .smarty-carousel .slick-dots li .slick-prev:before { 
+                content: '←'; /* Left arrow icon */
+                color: {$saved_dot_color}; 
+            }
+            .smarty-carousel .slick-dots li .slick-prev:next { 
+                content: '→'; /* Right arrow icon */
+                color: {$saved_dot_color}; 
+            }
+            .slick-prev.slick-arrow:hover,
+            .slick-next.slick-arrow:hover,
+            .slick-prev.slick-arrow:focus,
+            .slick-next.slick-arrow:focus,
+            .slick-dots li button:hover,
+            .slick-dots li button:focus {
+                background: transparent;
+            }
             .smarty-carousel .product { padding: {$saved_slide_padding}px; }
+            .smarty-carousel .product h2 {
+                font-size: 16px; /* Adjust to your preference */
+                margin-bottom: 10px; /* Space below title */
+            }
+            .smarty-carousel .price .woocommerce-Price-amount.amount { font-size: 22px; }
+            .smarty-carousel .added_to_cart.wc-forward { display: none; }
+            .smarty-carousel .button { margin-bottom: 15px; }
         </style>";
 
         // Include the custom CSS in the output
