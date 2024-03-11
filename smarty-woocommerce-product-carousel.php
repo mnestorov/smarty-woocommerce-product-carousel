@@ -510,22 +510,84 @@ if (!function_exists('smarty_custom_css_callback')) {
 if (!function_exists('smarty_print_custom_css')) {
     function smarty_print_custom_css() {
         $options = get_option('smarty_carousel_options');
-        if (!empty($options['custom_css'])) {
-            echo "<style type=\"text/css\">\n";
-            // Custom CSS for arrows and dots
-            echo ".slick-prev:before, .slick-next:before { color: " . esc_attr($options['smarty_arrow_color']) . " !important; }\n";
-            echo ".slick-dots li button:before { color: " . esc_attr($options['dot_color']) . " !important; }\n";
-            // Check if dots should be displayed
-            if (isset($options['dots_display']) && $options['smarty_dots_display']) {
-                echo ".slick-dots { display: block !important; }\n";
-            }
-            // Include saved custom CSS
-            echo $options['custom_css'] . "\n";
-            echo "</style>\n";
+
+        echo "<style type=\"text/css\">\n";
+        // Base styles for arrows and dots with dynamic colors
+        echo ".slick-prev:before, .slick-next:before { color: " . esc_attr($options['smarty_arrow_color'] ?? '') . " !important; }\n";
+        echo ".slick-dots li button:before { color: " . esc_attr($options['smarty_dot_color'] ?? '') . " !important; }\n";
+        // Check if dots should be displayed
+        if (!empty($options['smarty_display_dots'])) {
+            echo ".slick-dots { display: block !important; }\n";
         }
+        // Custom CSS for slide padding
+        if (!empty($options['smarty_slide_padding'])) {
+            echo ".smarty-carousel .product { padding: " . esc_attr($options['smarty_slide_padding']) . "px; }\n";
+        }
+
+        // Additional custom CSS styles specific to the carousel
+        ?>
+        #smarty-woo-carousel .text-label {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #FFD700;
+            color: #000;
+            padding: 2px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+        }
+        #smarty-woo-carousel .product { position: relative; }
+        #smarty-woo-carousel .discount-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        #smarty-woo-carousel .discount-label s { color: #aaaaaa; }
+        #smarty-woo-carousel.smarty-carousel { text-align: center; }
+        #smarty-woo-carousel.smarty-carousel .slick-prev,
+        #smarty-woo-carousel.smarty-carousel .slick-next {
+            font-size: 0;
+            line-height: 0;
+            position: absolute;
+            top: 50%;
+            transform: translate(0, -50%);
+            background: transparent;
+            border: none;
+            z-index: 25;
+        }
+        #smarty-woo-carousel.smarty-carousel .slick-prev {
+            left: 25px;
+            z-index: 1;
+        }
+        #smarty-woo-carousel.smarty-carousel .slick-next {
+            right: 25px;
+            z-index: 1;
+        }
+        #smarty-woo-carousel.smarty-carousel .product { padding: <?php echo intval($options['smarty_slide_padding'] ?? '0'); ?>px; }
+        #smarty-woo-carousel.smarty-carousel .product h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        #smarty-woo-carousel.smarty-carousel .price .woocommerce-Price-amount.amount { font-size: 22px; }
+        #smarty-woo-carousel.smarty-carousel .added_to_cart.wc-forward { display: none; }
+        #smarty-woo-carousel.smarty-carousel .button { margin-bottom: 15px; }
+        <?php
+
+        // Echo additional saved custom CSS if set
+        if (!empty($options['custom_css'])) {
+            echo esc_attr($options['custom_css']) . "\n";
+        }
+        echo "</style>\n";
     }
+    add_action('wp_head', 'smarty_print_custom_css');
 }
-add_action('wp_head', 'smarty_print_custom_css');
 
 if (!function_exists('smarty_options_sanitize')) {
     function smarty_options_sanitize($input) {
@@ -780,92 +842,6 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                 });
             });
         </script>";
-
-        // Inject saved settings into the inline CSS or JavaScript as needed
-        $custom_css = "
-        <style>
-            #smarty-woo-carousel .text-label {
-                position: absolute;
-                top: 40%;
-                left: 50%;
-                transform: translateX(-50%);
-                background-color: #FFD700;
-                color: #000;
-                padding: 2px 20px;
-                font-size: 14px;
-                font-weight: bold;
-                text-align: center;
-            }
-            #smarty-woo-carousel .product { position: relative; }
-            #smarty-woo-carousel .discount-label {
-                position: absolute;
-                top: 0;
-                left: 0;
-                background-color: #ff0000;
-                color: #ffffff;
-                padding: 5px;
-                font-size: 14px;
-                font-weight: bold;
-            }
-            #smarty-woo-carousel .discount-label s { color: #aaaaaa; }
-            #smarty-woo-carousel.smarty-carousel { text-align: center; }
-            #smarty-woo-carousel.smarty-carousel .slick-prev,
-            #smarty-woo-carousel.smarty-carousel .slick-next {
-                font-size: 0; /* Hides the text for arrows */
-                line-height: 0;
-                position: absolute;
-                top: 50%;
-                transform: translate(0, -50%);
-                background: transparent; /* No background */
-                border: none; /* No border */
-                z-index: 25; /* Ensure they are above other content */
-            }
-            /* Adjust arrow positions */
-            #smarty-woo-carousel.smarty-carousel .slick-prev {
-                left: 25px; /* Distance from the left side */
-                z-index: 1;
-            }
-            #smarty-woo-carousel.smarty-carousel .slick-next {
-                right: 25px; /* Distance from the right side */
-                z-index: 1;
-            }
-            #smarty-woo-carousel.smarty-carousel .slick-prev:before, 
-            #smarty-woo-carousel.smarty-carousel .slick-next:before { 
-                font-family: 'slick'; /* Change as needed */
-                font-size: 24px; /* Arrow size */
-                color: {$saved_arrow_color}; 
-                color: #444;
-                line-height: 1;
-                opacity: 1; /* Make sure it's visible */
-            }
-            #smarty-woo-carousel.smarty-carousel .slick-dots li .slick-prev:before { 
-                content: '←'; /* Left arrow icon */
-                color: {$saved_dot_color}; 
-            }
-            #smarty-woo-carousel.smarty-carousel .slick-dots li .slick-prev:next { 
-                content: '→'; /* Right arrow icon */
-                color: {$saved_dot_color}; 
-            }
-            #smarty-woo-carousel .slick-prev.slick-arrow:hover,
-            #smarty-woo-carousel .slick-next.slick-arrow:hover,
-            #smarty-woo-carousel .slick-prev.slick-arrow:focus,
-            #smarty-woo-carousel .slick-next.slick-arrow:focus,
-            #smarty-woo-carousel .slick-dots li button:hover,
-            #smarty-woo-carousel .slick-dots li button:focus {
-                background: transparent;
-            }
-            #smarty-woo-carousel.smarty-carousel .product { padding: {$saved_slide_padding}px; }
-            #smarty-woo-carousel.smarty-carousel .product h2 {
-                font-size: 16px; /* Adjust to your preference */
-                margin-bottom: 10px; /* Space below title */
-            }
-            #smarty-woo-carousel.smarty-carousel .price .woocommerce-Price-amount.amount { font-size: 22px; }
-            #smarty-woo-carousel.smarty-carousel .added_to_cart.wc-forward { display: none; }
-            #smarty-woo-carousel.smarty-carousel .button { margin-bottom: 15px; }
-        </style>";
-
-        // Include the custom CSS in the output
-        $carousel_html = $custom_css . $carousel_html;
 
         return $carousel_html;
     }
