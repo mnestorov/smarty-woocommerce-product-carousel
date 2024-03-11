@@ -9,11 +9,15 @@
 
 ## Overview
 
-...
+The Smarty Studio WooCommerce Product Carousel plugin provides a sleek and customizable product carousel for WooCommerce stores. Enhance your online store's user experience by showcasing your products in a dynamic and responsive carousel.
 
 ## Features
 
-...
+- Customizable product selection: Choose exactly which products you want to display in the carousel.
+- Responsive design: Ensures a great experience across all devices.
+- Customizable texts: Easily change the texts for "Save", "Add To Cart", and "Exclusive" directly from the plugin's settings.
+- Variable product support: Displays discounts and allows users to add variable products to their cart from the carousel.
+- Styling options: Modify the appearance of the carousel with custom CSS.
 
 ## Installation
 
@@ -22,7 +26,11 @@
 
 ## Usage
 
-...
+To display the product carousel, use the shortcode `[smarty_product_carousel]` in your posts or pages. Customize it further with shortcode attributes or via the plugin's settings page.
+
+## Customizing Texts
+
+Navigate to the plugin's settings under the WooCommerce section in your WordPress admin. Here you can find options to customize the texts for "Save", "Add To Cart", and "Exclusive".
 
 ## Requirements
 
