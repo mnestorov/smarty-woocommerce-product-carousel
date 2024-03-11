@@ -649,7 +649,7 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         $products = $query->get_products();
 
         // Start building carousel HTML
-        $carousel_html = '<div class="smarty-carousel">';
+        $carousel_html = '<div id="smarty-woo-carousel" class="smarty-carousel">';
 
         // Flag to identify the first product
         $is_first_product = true;
@@ -784,7 +784,7 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         // Inject saved settings into the inline CSS or JavaScript as needed
         $custom_css = "
         <style>
-            .text-label {
+            #smarty-woo-carousel .text-label {
                 position: absolute;
                 top: 40%;
                 left: 50%;
@@ -796,8 +796,8 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                 font-weight: bold;
                 text-align: center;
             }
-            .product { position: relative; }
-            .discount-label {
+            #smarty-woo-carousel .product { position: relative; }
+            #smarty-woo-carousel .discount-label {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -807,10 +807,10 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                 font-size: 14px;
                 font-weight: bold;
             }
-            .discount-label s { color: #aaaaaa; }
-            .smarty-carousel { text-align: center; }
-            .smarty-carousel .slick-prev,
-            .smarty-carousel .slick-next {
+            #smarty-woo-carousel .discount-label s { color: #aaaaaa; }
+            #smarty-woo-carousel.smarty-carousel { text-align: center; }
+            #smarty-woo-carousel.smarty-carousel .slick-prev,
+            #smarty-woo-carousel.smarty-carousel .slick-next {
                 font-size: 0; /* Hides the text for arrows */
                 line-height: 0;
                 position: absolute;
@@ -821,15 +821,16 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                 z-index: 25; /* Ensure they are above other content */
             }
             /* Adjust arrow positions */
-            .smarty-carousel .slick-prev {
+            #smarty-woo-carousel.smarty-carousel .slick-prev {
                 left: 25px; /* Distance from the left side */
                 z-index: 1;
             }
-            .smarty-carousel .slick-next {
+            #smarty-woo-carousel.smarty-carousel .slick-next {
                 right: 25px; /* Distance from the right side */
                 z-index: 1;
             }
-            .smarty-carousel .slick-prev:before, .smarty-carousel .slick-next:before { 
+            #smarty-woo-carousel.smarty-carousel .slick-prev:before, 
+            #smarty-woo-carousel.smarty-carousel .slick-next:before { 
                 font-family: 'slick'; /* Change as needed */
                 font-size: 24px; /* Arrow size */
                 color: {$saved_arrow_color}; 
@@ -837,30 +838,30 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                 line-height: 1;
                 opacity: 1; /* Make sure it's visible */
             }
-            .smarty-carousel .slick-dots li .slick-prev:before { 
+            #smarty-woo-carousel.smarty-carousel .slick-dots li .slick-prev:before { 
                 content: '←'; /* Left arrow icon */
                 color: {$saved_dot_color}; 
             }
-            .smarty-carousel .slick-dots li .slick-prev:next { 
+            #smarty-woo-carousel.smarty-carousel .slick-dots li .slick-prev:next { 
                 content: '→'; /* Right arrow icon */
                 color: {$saved_dot_color}; 
             }
-            .slick-prev.slick-arrow:hover,
-            .slick-next.slick-arrow:hover,
-            .slick-prev.slick-arrow:focus,
-            .slick-next.slick-arrow:focus,
-            .slick-dots li button:hover,
-            .slick-dots li button:focus {
+            #smarty-woo-carousel .slick-prev.slick-arrow:hover,
+            #smarty-woo-carousel .slick-next.slick-arrow:hover,
+            #smarty-woo-carousel .slick-prev.slick-arrow:focus,
+            #smarty-woo-carousel .slick-next.slick-arrow:focus,
+            #smarty-woo-carousel .slick-dots li button:hover,
+            #smarty-woo-carousel .slick-dots li button:focus {
                 background: transparent;
             }
-            .smarty-carousel .product { padding: {$saved_slide_padding}px; }
-            .smarty-carousel .product h2 {
+            #smarty-woo-carousel.smarty-carousel .product { padding: {$saved_slide_padding}px; }
+            #smarty-woo-carousel.smarty-carousel .product h2 {
                 font-size: 16px; /* Adjust to your preference */
                 margin-bottom: 10px; /* Space below title */
             }
-            .smarty-carousel .price .woocommerce-Price-amount.amount { font-size: 22px; }
-            .smarty-carousel .added_to_cart.wc-forward { display: none; }
-            .smarty-carousel .button { margin-bottom: 15px; }
+            #smarty-woo-carousel.smarty-carousel .price .woocommerce-Price-amount.amount { font-size: 22px; }
+            #smarty-woo-carousel.smarty-carousel .added_to_cart.wc-forward { display: none; }
+            #smarty-woo-carousel.smarty-carousel .button { margin-bottom: 15px; }
         </style>";
 
         // Include the custom CSS in the output
