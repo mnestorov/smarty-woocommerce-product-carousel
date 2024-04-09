@@ -526,60 +526,12 @@ if (!function_exists('smarty_print_custom_css')) {
 
         // Additional custom CSS styles specific to the carousel
         ?>
-        #smarty-woo-carousel .text-label {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #FFD700;
-            color: #000;
-            padding: 2px 20px;
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-        }
-        #smarty-woo-carousel .product { position: relative; }
-        #smarty-woo-carousel .discount-label {
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: #ff0000;
-            color: #ffffff;
-            padding: 5px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        #smarty-woo-carousel .discount-label s { color: #bbeebb; }
-        #smarty-woo-carousel.smarty-carousel { text-align: center; }
-        #smarty-woo-carousel.smarty-carousel .slick-prev,
-        #smarty-woo-carousel.smarty-carousel .slick-next {
-            font-size: 0;
-            line-height: 0;
-            position: absolute;
-            top: 50%;
-            transform: translate(0, -50%);
-            background: transparent;
-            border: none;
-            z-index: 25;
-        }
-        #smarty-woo-carousel.smarty-carousel .slick-prev {
-            left: 25px;
-            z-index: 1;
-        }
-        #smarty-woo-carousel.smarty-carousel .slick-next {
-            right: 25px;
-            z-index: 1;
-        }
-        #smarty-woo-carousel.smarty-carousel .product { padding: <?php echo intval($options['smarty_slide_padding'] ?? '0'); ?>px; }
-        #smarty-woo-carousel.smarty-carousel .product h2 {
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        #smarty-woo-carousel.smarty-carousel .price .woocommerce-Price-amount.amount { font-size: 22px; }
-        #smarty-woo-carousel.smarty-carousel .added_to_cart.wc-forward { display: none; }
-        #smarty-woo-carousel.smarty-carousel .button { margin-bottom: 15px; }
-        <?php
 
+        #smarty-woo-carousel.smarty-carousel .product { 
+			padding: <?php echo intval($options['smarty_slide_padding'] ?? '0'); ?>px; 
+		}
+
+        <?php
         // Echo additional saved custom CSS if set
         if (!empty($options['custom_css'])) {
             echo esc_attr($options['custom_css']) . "\n";
