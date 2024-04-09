@@ -680,21 +680,36 @@ if (!function_exists('smarty_search_products')) {
 }
 
 if (!function_exists('smarty_product_carousel_shortcode')) {
-    function smarty_product_carousel_shortcode() {
+    function smarty_product_carousel_shortcode($atts) {
         $options = get_option('smarty_carousel_options');
+        $plugin_slides_to_show = isset($options['smarty_slides_to_show']) && is_numeric($options['smarty_slides_to_show']) ? intval($options['smarty_slides_to_show']) : 3;
+        
+        $attributes = shortcode_atts(
+            array(
+                'slides_to_show' => $plugin_slides_to_show, // Use the plugin setting as the default value
+            ), 
+            $atts, 
+            'smarty_product_carousel'
+        );
 
         $saved_ids = isset($options['products']) ? $options['products'] : [];
+        
         $display_arrows = isset($options['smarty_display_arrows']) && $options['smarty_display_arrows'] ? 'true' : 'false';
         $saved_arrow_color = isset($options['smarty_arrow_color']) ? $options['smarty_arrow_color'] : '';
+        
         $display_dots = isset($options['smarty_display_dots']) && $options['smarty_display_dots'] ? 'true' : 'false';
         $saved_dot_color = isset($options['smarty_dot_color']) ? $options['smarty_dot_color'] : '';
         $saved_slide_padding = isset($options['smarty_slide_padding']) ? $options['smarty_slide_padding'] : '';
-        $slides_to_show = isset($options['smarty_slides_to_show']) ? $options['smarty_slides_to_show'] : '3';
+        
+        $slides_to_show = $attributes['slides_to_show'];
         $slides_to_scroll = isset($options['smarty_slides_to_scroll']) ? $options['smarty_slides_to_scroll'] : '1';
+       
         $speed = isset($options['smarty_speed']) ? $options['smarty_speed'] : '300';
         $autoplay = isset($options['smarty_autoplay_indicator']) && $options['smarty_autoplay_indicator'] ? 'true' : 'false';
         $autoplay_speed = isset($options['smarty_autoplay_speed']) ? $options['smarty_autoplay_speed'] : '3000';
+        
         $infinite = isset($options['smarty_infinite']) && $options['smarty_infinite'] ? 'true' : 'false';
+        
         $save_text = $options['smarty_save_text'] ?? 'Save';
         $add_to_cart_text = $options['smarty_add_to_cart_text'] ?? 'Add To Cart';
         $label_text = $options['smarty_label_text'] ?? 'Exclusive';
@@ -816,7 +831,7 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                     speed: " . intval($speed) . ",
                     autoplay: {$autoplay},
                     autoplaySpeed: " . intval($autoplay_speed) . ",
-                    slidesToShow: " . intval($options['smarty_slides_to_show']) . ",
+                    slidesToShow: " . $slides_to_show . ",
                     slidesToScroll: " . intval($options['smarty_slides_to_scroll']) . ",
                     infinite: {$infinite},
                     adaptiveHeight: 'false',
