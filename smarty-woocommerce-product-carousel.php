@@ -468,7 +468,7 @@ if (!function_exists('smarty_discount_callback')) {
     function smarty_discount_callback() {
         $options = get_option('smarty_carousel_options');
         $value = isset($options['smarty_discount']) ? $options['smarty_discount'] : '10'; ?>
-        <input type='number' name='smarty_carousel_options[smarty_discount]' value='<?php echo esc_attr($value); ?>' min='1' class="small-text" />
+        <input type='number' name='smarty_carousel_options[smarty_discount]' value='<?php echo esc_attr($value); ?>' min='0' class="small-text" />
         <p class="description"><?php echo __('Set the old products discount.', 'smarty-woocommerce-product-carousel'); ?></p>
         <?php
     }
@@ -549,7 +549,7 @@ if (!function_exists('smarty_print_custom_css')) {
             font-size: 14px;
             font-weight: bold;
         }
-        #smarty-woo-carousel .discount-label s { color: #aaaaaa; }
+        #smarty-woo-carousel .discount-label s { color: #bbeebb; }
         #smarty-woo-carousel.smarty-carousel { text-align: center; }
         #smarty-woo-carousel.smarty-carousel .slick-prev,
         #smarty-woo-carousel.smarty-carousel .slick-next {
@@ -730,6 +730,7 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                 $is_first_product = false; // Reset flag so it's only applied to the first product
             }
 
+            
             if ($product->is_type('variable')) {
 
                 $variations = $product->get_available_variations();
@@ -750,7 +751,7 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                     }
                 }
             } else if ($product->is_on_sale()) {
-        
+            
                 $regular_price = floatval($product->get_regular_price());
                 $sale_price = floatval($product->get_sale_price());
 
@@ -759,9 +760,17 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                     $max_amount_saved = $regular_price - $sale_price;
                 }
             }
-        
+
+            // Now, adjust the logic for displaying the discount label
+            // Check if there is a discount and if old discount is not disabled (not set to 0)
             if ($max_discount > 0) {
-                $carousel_html .= '<div class="discount-label"><s>-' . $max_discount - $old_discount . '%</s> -' . $max_discount . '%</div>';
+                if ($old_discount != 0) {
+                    // Show the discount including the old discount adjustment
+                    $carousel_html .= '<div class="discount-label"><s>-' . $max_discount - $old_discount . '%</s> -' . $max_discount . '%</div>';
+                } else {
+                    // Old discount is disabled, show only the actual discount
+                    $carousel_html .= '<div class="discount-label">-' . $max_discount . '%</div>';
+                }
             }
         
             $carousel_html .= '<img src="' . wp_get_attachment_url($product->get_image_id()) . '" alt="' . $product->get_name() . '">';
