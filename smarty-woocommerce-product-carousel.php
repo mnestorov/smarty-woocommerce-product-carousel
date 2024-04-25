@@ -704,7 +704,7 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         
         // Add custom title if it exists
         if (!empty($custom_title)) {
-            $carousel_html .= '<h3 class="smarty-carousel-title">' . esc_html($custom_title) . '</h3>';
+            $carousel_html .= '<h5 class="smarty-carousel-title">' . esc_html($custom_title) . '</h5>';
         }
 
         // Start the carousel div after adding the title
