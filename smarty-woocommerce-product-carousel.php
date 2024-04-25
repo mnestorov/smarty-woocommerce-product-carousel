@@ -295,6 +295,15 @@ if (!function_exists('smarty_register_settings')) {
             'smarty_carousel_discount'              // Section
         );
 
+        // Add a new field for custom title
+        add_settings_field(
+            'smarty_custom_title',                   // ID
+            'Custom Title',                          // Title
+            'smarty_custom_title_callback',          // Callback function
+            'smarty-settings-group',                 // Page
+            'smarty_carousel_texts'                  // Section
+        );
+
         // Save text
         add_settings_field(
             'smarty_save_text', 
@@ -474,6 +483,17 @@ if (!function_exists('smarty_discount_callback')) {
     }
 }
 
+if (!function_exists('smarty_custom_title_callback')) {
+    function smarty_custom_title_callback() {
+        $options = get_option('smarty_carousel_options');
+        $title = $options['smarty_custom_title'] ?? ''; // Default value is empty
+        ?>
+        <input type="text" id="smarty_custom_title" name="smarty_carousel_options[smarty_custom_title]" value="<?php echo esc_attr($title); ?>" class="regular-text">
+        <p class="description"><?php echo __('Enter a custom title for your product carousel.', 'smarty-woocommerce-product-carousel'); ?></p>
+        <?php
+    }
+}
+
 if (!function_exists('smarty_save_text_callback')) {
     function smarty_save_text_callback() {
         $options = get_option('smarty_carousel_options'); ?>
@@ -552,6 +572,7 @@ if (!function_exists('smarty_options_sanitize')) {
         $input['smarty_autoplay_indicator'] = !empty($input['smarty_autoplay_indicator']) ? true : false;
         $input['smarty_autoplay_speed'] = intval($input['smarty_autoplay_speed']);
         $input['smarty_infinite'] = !empty($input['smarty_infinite']) ? true : false;
+        $input['smarty_custom_title'] = sanitize_text_field($input['smarty_custom_title'] ?? '');
         $input['smarty_save_text'] = sanitize_text_field($input['smarty_save_text'] ?? 'Save');
         $input['smarty_add_to_cart_text'] = sanitize_text_field($input['smarty_add_to_cart_text'] ?? 'Add To Cart');
         $input['smarty_label_text'] = sanitize_text_field($input['smarty_label_text'] ?? 'Exclusive');
@@ -634,6 +655,7 @@ if (!function_exists('smarty_search_products')) {
 if (!function_exists('smarty_product_carousel_shortcode')) {
     function smarty_product_carousel_shortcode($atts) {
         $options = get_option('smarty_carousel_options');
+        $custom_title = $options['smarty_custom_title'] ?? '';
         $plugin_slides_to_show = isset($options['smarty_slides_to_show']) && is_numeric($options['smarty_slides_to_show']) ? intval($options['smarty_slides_to_show']) : 3;
         
         $attributes = shortcode_atts(
@@ -678,7 +700,15 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         $products = $query->get_products();
 
         // Start building carousel HTML
-        $carousel_html = '<div id="smarty-woo-carousel" class="smarty-carousel">';
+        $carousel_html = '';  // Start with an empty string.
+        
+        // Add custom title if it exists
+        if (!empty($custom_title)) {
+            $carousel_html .= '<h3 class="smarty-carousel-title">' . esc_html($custom_title) . '</h3>';
+        }
+
+        // Start the carousel div after adding the title
+        $carousel_html .= '<div id="smarty-woo-carousel" class="smarty-carousel">';
 
         // Flag to identify the first product
         $is_first_product = true;
@@ -775,8 +805,9 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
 
             $carousel_html .= '</div>';
         }
-
+       
         $carousel_html .= '</div>';
+
         $carousel_html .= "<script>
             jQuery(document).ready(function($) {
                 $('.smarty-carousel').slick({
@@ -817,6 +848,14 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                     ]
                 });
             });
+
+            jQuery(document.body).on('added_to_cart', function() {
+				if (window.location.href.indexOf('checkout') !== -1) {
+					window.location.reload();
+				} else {
+					jQuery(document.body).trigger('wc_fragment_refresh');
+				}
+			});                      
         </script>";
 
         return $carousel_html;
