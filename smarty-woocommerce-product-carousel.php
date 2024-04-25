@@ -715,7 +715,6 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
 
         foreach ($products as $product) {
             $carousel_html .= '<div class="product">';
-            $carousel_html .= '<a href="' . get_permalink($product->get_id()) . '">';
         
             $max_discount = 0;
             $max_amount_saved = 0;
@@ -723,13 +722,13 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
 
             // Label for the first product
             if ($is_first_product) {
-                $carousel_html .= "<div class='text-label'>{$label_text}</div>";
+                if (!empty($label_text)) {
+                    $carousel_html .= "<div class='text-label'>{$label_text}</div>";
+                }
                 $is_first_product = false; // Reset flag so it's only applied to the first product
             }
 
-            
             if ($product->is_type('variable')) {
-
                 $variations = $product->get_available_variations();
 
                 foreach ($variations as $variation) {
@@ -770,8 +769,7 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                 }
             }
         
-            $carousel_html .= '<img src="' . wp_get_attachment_url($product->get_image_id()) . '" alt="' . $product->get_name() . '">';
-            $carousel_html .= '</a>';
+            $carousel_html .= '<img src="' . wp_get_attachment_url($product->get_image_id()) . '" alt="' . $product->get_name() . '" title="' . $product->get_name() . '">';
             $carousel_html .= '<h2>' . $product->get_name() . '</h2>';
             $carousel_html .= '<span class="price"><small>' . $product->get_price_html() . '</small></span>';
             
