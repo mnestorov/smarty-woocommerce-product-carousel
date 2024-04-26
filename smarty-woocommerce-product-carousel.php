@@ -691,6 +691,8 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         // Prepare query arguments
         $query_args = array(
             'limit'  => -1,
+			'orderby' => 'menu_order',
+			'order' => 'ASC',
             'status' => 'publish',
             'include' => $saved_ids,
         );
@@ -800,7 +802,7 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
                     $carousel_html .= '<a href="' . esc_url($product_url) . '" class="button">Select Options</a>';
                 }
             }
-
+            
             $carousel_html .= '</div>';
         }
        
