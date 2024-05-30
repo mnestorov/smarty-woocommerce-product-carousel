@@ -862,3 +862,47 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
     }
     add_shortcode('smarty_product_carousel', 'smarty_product_carousel_shortcode');
 }
+
+if (!function_exists('smarty_check_upsell_products_in_cart')) {
+    /**
+     * Function to check the upsell products in cart
+     * TODO: Select the category for product upsells trough select field in plugin settings page
+     */
+    function smarty_check_upsell_products_in_cart() {
+        if (is_admin() && !defined('DOING_AJAX')) return;
+
+        $cart = WC()->cart->get_cart();
+        $regular_product_found = false;
+        $removed_items = false;  // Flag to track if any upsell items were removed
+
+        // Check each cart item to determine if there are any non-upsell products
+        foreach ($cart as $cart_item_key => $cart_item) {
+            $product = $cart_item['data'];
+            // Check if the product is not in the 'upsell' category
+            if (!has_term('upsell', 'product_cat', $product->get_id())) {
+                $regular_product_found = true;
+                break;
+            }
+        }
+
+        // If no non-upsell (regular) products are found, remove upsell products
+        if (!$regular_product_found) {
+            foreach ($cart as $cart_item_key => $cart_item) {
+                $product = $cart_item['data'];
+                // Again, check if the product is in the 'upsell' category
+                if (has_term('upsell', 'product_cat', $product->get_id())) {
+                    WC()->cart->remove_cart_item($cart_item_key);
+                    $removed_items = true;  // Set flag to true as we're removing an item
+                }
+            }
+
+            // If any upsell items were removed, add a notice to the cart
+            //if ($removed_items) {
+            //    wc_add_notice(__('Upsell products have been removed from your cart because there are no regular products.', 'smarty-woocommerce-product-carousel'), 'notice');
+            //}
+        }
+    }
+    add_action('woocommerce_before_cart', 'smarty_check_upsell_products_in_cart');
+    add_action('woocommerce_cart_item_removed', 'smarty_check_upsell_products_in_cart');
+    add_action('woocommerce_cart_updated', 'smarty_check_upsell_products_in_cart');
+}
