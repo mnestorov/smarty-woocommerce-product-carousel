@@ -10,7 +10,9 @@
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain: smarty-woocommerce-product-carousel
  * 
- * Usage: [smarty_product_carousel ids="1,2,3" speed="500" autoplay="true" autoplay_speed="3000"]
+ * Usage: 
+ *  - [smarty_product_carousel ids="1,2,3" speed="500" autoplay="true" autoplay_speed="3000"]
+ *  - [smarty_product_carousel slides_to_show="1"]
  */
 
 // If this file is called directly, abort.
@@ -641,8 +643,8 @@ if (!function_exists('smarty_search_products')) {
             while ($query->have_posts()) {
                 $query->the_post();
                 $results[] = array(
-                    'id' => get_the_ID(),
-                    'text' => get_the_title() . ' (ID: ' . get_the_ID() . ')',
+                    'id'    => get_the_ID(),
+                    'text'  => get_the_title() . ' (ID: ' . get_the_ID() . ')',
                 );
             }
         }
@@ -654,6 +656,7 @@ if (!function_exists('smarty_search_products')) {
 
 if (!function_exists('smarty_product_carousel_shortcode')) {
     function smarty_product_carousel_shortcode($atts) {
+        global $wpdb; 
         $options = get_option('smarty_carousel_options');
         $custom_title = $options['smarty_custom_title'] ?? '';
         $plugin_slides_to_show = isset($options['smarty_slides_to_show']) && is_numeric($options['smarty_slides_to_show']) ? intval($options['smarty_slides_to_show']) : 3;
@@ -666,6 +669,7 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
             'smarty_product_carousel'
         );
 
+        // IDs from settings
         $saved_ids = isset($options['products']) ? $options['products'] : [];
         
         $display_arrows = isset($options['smarty_display_arrows']) && $options['smarty_display_arrows'] ? 'true' : 'false';
@@ -688,13 +692,36 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
         $add_to_cart_text = $options['smarty_add_to_cart_text'] ?? 'Add To Cart';
         $label_text = $options['smarty_label_text'] ?? 'Exclusive';
 
-        // Prepare query arguments
+        // Get product names from cart
+        $cart_product_names = smarty_get_cart_product_names();
+
+        // Retrieve IDs of products set in the carousel settings
+        $carousel_ids = $options['products'] ?? [];
+
+        // Build a list of IDs to exclude based on cart item names
+        $excluded_ids = [];
+        foreach ($carousel_ids as $id) {
+            $product = wc_get_product($id);
+            if ($product) {
+                foreach ($cart_product_names as $cart_name) {
+                    if (stripos($product->get_name(), $cart_name) !== false || stripos($cart_name, $product->get_name()) !== false) {
+                        $excluded_ids[] = $id;
+                        break;
+                    }
+                }
+            }
+        }
+
+        $included_ids = array_diff($carousel_ids, $excluded_ids);
+
+        // Prepare query arguments excluding cart items
         $query_args = array(
-            'limit'  => -1,
-			'orderby' => 'menu_order',
-			'order' => 'ASC',
-            'status' => 'publish',
-            'include' => $saved_ids,
+            'limit'          => -1,
+            'post_type'      => 'product',
+            'orderby'        => 'menu_order',
+            'order'          => 'ASC',
+            'status'         => 'publish',
+            'include'        => $included_ids,
         );
 
         // Query products
@@ -863,6 +890,17 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
     add_shortcode('smarty_product_carousel', 'smarty_product_carousel_shortcode');
 }
 
+if (!function_exists('smarty_get_cart_product_names')) {
+    function smarty_get_cart_product_names() {
+        $names = [];
+        foreach (WC()->cart->get_cart() as $cart_item) {
+            $product = $cart_item['data'];
+            $names[] = $product->get_name();
+        }
+        return $names;
+    }
+}
+
 if (!function_exists('smarty_check_upsell_products_in_cart')) {
     /**
      * Function to check the upsell products in cart
@@ -897,9 +935,11 @@ if (!function_exists('smarty_check_upsell_products_in_cart')) {
             }
 
             // If any upsell items were removed, add a notice to the cart
-            //if ($removed_items) {
-            //    wc_add_notice(__('Upsell products have been removed from your cart because there are no regular products.', 'smarty-woocommerce-product-carousel'), 'notice');
-            //}
+			/*
+            if ($removed_items) {
+                wc_add_notice(__('Upsell products have been removed from your cart because there are no regular products.', 'smarty-woocommerce-product-carousel'), 'notice');
+            }
+			*/
         }
     }
     add_action('woocommerce_before_cart', 'smarty_check_upsell_products_in_cart');
