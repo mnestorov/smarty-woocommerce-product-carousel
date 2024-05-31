@@ -810,23 +810,26 @@ if (!function_exists('smarty_product_carousel_shortcode')) {
             // Add to Cart button
             if ($product->is_type('simple')) {
                 // Simple product: Directly add the product to the cart
-                $add_to_cart_url = '?add-to-cart=' . $product->get_id();
-                $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '">' . $add_to_cart_text . '</a>';
+                //$add_to_cart_url = '?add-to-cart=' . $product->get_id();
+                $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&source=upsell';
+                $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '">' . $add_to_cart_text . '</a>';
             } elseif ($product->is_type('variable')) {
                 // Variable product: Add the first available variation to the cart
                 $available_variations = $product->get_available_variations();
                 $first_variation_id = $available_variations[0]['variation_id'] ?? 0;
                 if ($first_variation_id > 0) {
-                    $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&variation_id=' . $first_variation_id;
+                    //$add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&variation_id=' . $first_variation_id;
+                    $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&variation_id=' . $first_variation_id . '&source=upsell';
                     // Automatically selecting the first variation attributes might be required, you can append them to the URL if needed
                     foreach ($available_variations[0]['attributes'] as $attr_key => $attr_value) {
                         $add_to_cart_url .= '&' . $attr_key . '=' . $attr_value;
                     }
-                    $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '" data-variation_id="' . $first_variation_id . '">' . $add_to_cart_text . '</a>';
+                    $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '" data-variation_id="' . $first_variation_id . '">' . $add_to_cart_text . '</a>';
                 } else {
                     // Fallback link to the product page if no variations are available
                     $product_url = get_permalink($product->get_id());
-                    $carousel_html .= '<a href="' . esc_url($product_url) . '" class="button">Select Options</a>';
+                    //$carousel_html .= '<a href="' . esc_url($product_url) . '" class="button">Select Options</a>';
+                    $carousel_html .= '<a href="' . esc_url($product_url) . '?source=upsell' . '" id="smartyCarousel" class="button">Select Options</a>';
                 }
             }
             
