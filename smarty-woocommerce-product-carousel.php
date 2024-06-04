@@ -938,11 +938,10 @@ if (!function_exists('smarty_check_upsell_products_in_cart')) {
             }
 
             // If any upsell items were removed, add a notice to the cart
-			/*
             if ($removed_items) {
-                wc_add_notice(__('Upsell products have been removed from your cart because there are no regular products.', 'smarty-woocommerce-product-carousel'), 'notice');
+				wc_clear_notices();
+                wc_add_notice(__('You cannot have only upsell products in the cart.', 'smarty-woocommerce-product-carousel'), 'error');
             }
-			*/
         }
     }
     add_action('woocommerce_before_cart', 'smarty_check_upsell_products_in_cart');
