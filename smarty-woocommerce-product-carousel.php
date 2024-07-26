@@ -201,106 +201,106 @@ if (!function_exists('smarty_pc_register_settings')) {
 
         // Add a field for Hide Arrows
         add_settings_field(
-            'smarty_pc_display_arrows',                // ID
-            'Display Arrows',                       // Title
-            'smarty_pc_display_arrows_callback',       // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_display_arrows',                 // ID
+            'Display Arrows',                           // Title
+            'smarty_pc_display_arrows_callback',        // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
 
         add_settings_field(
-            'smarty_pc_arrow_color',                   // ID
-            'Arrow Color',                          // Title
-            'smarty_pc_arrow_color_callback',          // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_arrow_color',                    // ID
+            'Arrow Color',                              // Title
+            'smarty_pc_arrow_color_callback',           // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
 
         // Add a field for Display Dots
         add_settings_field(
-            'smarty_pc_display_dots',                  // ID
-            'Display Dots',                         // Title
-            'smarty_pc_display_dots_callback',         // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_display_dots',                   // ID
+            'Display Dots',                             // Title
+            'smarty_pc_display_dots_callback',          // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
         
         add_settings_field(
-            'smarty_pc_dot_color',                     // ID
-            'Dot Color',                            // Title
-            'smarty_pc_dot_color_callback',            // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_dot_color',                      // ID
+            'Dot Color',                                // Title
+            'smarty_pc_dot_color_callback',             // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
 
         add_settings_field(
-            'smarty_pc_slides_to_show',                // ID
-            'Slides to Show',                       // Title
-            'smarty_pc_slides_to_show_callback',       // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_slides_to_show',                 // ID
+            'Slides to Show',                           // Title
+            'smarty_pc_slides_to_show_callback',        // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
 
         add_settings_field(
-            'smarty_pc_slides_to_scroll',              // ID
-            'Slides to Scroll',                     // Title
-            'smarty_pc_slides_to_scroll_callback',     // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_slides_to_scroll',               // ID
+            'Slides to Scroll',                         // Title
+            'smarty_pc_slides_to_scroll_callback',      // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
         
         add_settings_field(
-            'smarty_pc_slide_padding',                 // ID
-            'Slide Padding',                        // Title
-            'smarty_pc_slide_padding_callback',        // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_slide_padding',                  // ID
+            'Slide Padding',                            // Title
+            'smarty_pc_slide_padding_callback',         // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
 
         add_settings_field(
-            'smarty_pc_speed',                         // ID
-            'Scrolling Speed',                       // Title
-            'smarty_pc_speed_callback',                // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_speed',                          // ID
+            'Scrolling Speed',                          // Title
+            'smarty_pc_speed_callback',                 // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );        
         
         add_settings_field(
-            'smarty_pc_autoplay_indicator',            // ID
-            'Autoplay Indicator',                   // Title
-            'smarty_pc_autoplay_indicator_callback',   // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_autoplay_indicator',             // ID
+            'Autoplay Indicator',                       // Title
+            'smarty_pc_autoplay_indicator_callback',    // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
 
         add_settings_field(
-            'smarty_pc_autoplay_speed',                // ID
-            'Autoplay Speed',                       // Title
-            'smarty_pc_autoplay_speed_callback',       // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_autoplay_speed',                 // ID
+            'Autoplay Speed',                           // Title
+            'smarty_pc_autoplay_speed_callback',        // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
 
         add_settings_field(
-            'smarty_pc_infinite',                      // ID
-            'Infinite',                             // Title
-            'smarty_pc_infinite_callback',             // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_settings'              // Section
+            'smarty_pc_infinite',                       // ID
+            'Infinite',                                 // Title
+            'smarty_pc_infinite_callback',              // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_settings'               // Section
         );
 
         add_settings_field(
-            'smarty_pc_discount',                      // ID
-            'Old Discount',                         // Title
-            'smarty_pc_discount_callback',             // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_discount'              // Section
+            'smarty_pc_discount',                       // ID
+            'Old Discount',                             // Title
+            'smarty_pc_discount_callback',              // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_discount'               // Section
         );
 
         // Add a new field for custom title
         add_settings_field(
             'smarty_pc_custom_title',                   // ID
-            'Custom Title',                          // Title
+            'Custom Title',                             // Title
             'smarty_pc_custom_title_callback',          // Callback function
             'smarty-pc-settings-group',                 // Page
             'smarty_pc_carousel_texts'                  // Section
@@ -308,38 +308,38 @@ if (!function_exists('smarty_pc_register_settings')) {
 
         // Save text
         add_settings_field(
-            'smarty_pc_save_text', 
-            'Save Text', 
-            'smarty_pc_save_text_callback', 
-            'smarty-pc-settings-group', 
-            'smarty_pc_carousel_texts'
+            'smarty_pc_save_text',                      // ID
+            'Save Text',                                // Title
+            'smarty_pc_save_text_callback',             // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_texts'                  // Section
         );
 
         // Add to Cart text
         add_settings_field(
-            'smarty_pc_add_to_cart_text', 
-            'Add To Cart Text', 
-            'smarty_pc_add_to_cart_text_callback', 
-            'smarty-pc-settings-group', 
-            'smarty_pc_carousel_texts'
+            'smarty_pc_add_to_cart_text',               // ID
+            'Add To Cart Text',                         // Title
+            'smarty_pc_add_to_cart_text_callback',      // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_texts'                  // Section
         );
 
         // Label text
         add_settings_field(
-            'smarty_pc_label_text', 
-            'Label Text', 
-            'smarty_pc_label_text_callback', 
-            'smarty-pc-settings-group', 
-            'smarty_pc_carousel_texts'
+            'smarty_pc_label_text',                     // ID
+            'Label Text',                               // Title
+            'smarty_pc_label_text_callback',            // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_texts'                  // Section
         );
         
         // Add a field for custom CSS
         add_settings_field(
-            'smarty_pc_custom_css',                    // ID
-            'Custom CSS',                           // Title
-            'smarty_pc_custom_css_callback',           // Callback function
-            'smarty-pc-settings-group',                // Page
-            'smarty_pc_carousel_styling'               // Section
+            'smarty_pc_custom_css',                     // ID
+            'Custom CSS',                               // Title
+            'smarty_pc_custom_css_callback',            // Callback function
+            'smarty-pc-settings-group',                 // Page
+            'smarty_pc_carousel_styling'                // Section
         );
     }
     add_action('admin_init', 'smarty_pc_register_settings');
@@ -689,7 +689,7 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
         $infinite = isset($options['smarty_pc_infinite']) && $options['smarty_pc_infinite'] ? 'true' : 'false';
         
         $save_text = $options['smarty_pc_save_text'] ?? 'Save';
-        $add_to_cart_text = $options['smarty_pc_add_to_cart_text'] ?? 'Add To Cart';
+        $add_to_cart_text = $options['smarty_pc_add_to_cart_text'];
         $label_text = $options['smarty_pc_label_text'] ?? 'Exclusive';
 
         // Get product names from cart
@@ -744,11 +744,11 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
 
         foreach ($products as $product) {
             $carousel_html .= '<div class="product">';
-        
+            
             $max_discount = 0;
             $max_amount_saved = 0;
             $old_discount = isset($options['smarty_pc_discount']) ? $options['smarty_pc_discount'] : '10';
-
+        
             // Label for the first product
             if ($is_first_product) {
                 if (!empty($label_text)) {
@@ -756,98 +756,116 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                 }
                 $is_first_product = false; // Reset flag so it's only applied to the first product
             }
-
+        
+            // Initialize price variables
+            $regular_price = 0;
+            $sale_price = 0;
+            $is_on_sale = false;
+        
             if ($product->is_type('variable')) {
                 $variations = $product->get_available_variations();
-
+                $variation_prices = [];
+        
                 foreach ($variations as $variation) {
                     $variation_obj = wc_get_product($variation['variation_id']);
-                    if ($variation_obj->is_on_sale()) {
-                        $regular_price = floatval($variation_obj->get_regular_price());
-                        $sale_price = floatval($variation_obj->get_sale_price());
-                        if ($regular_price > 0) { // Ensure there's a valid regular price
-                            $discount_percentage = round((($regular_price - $sale_price) / $regular_price) * 100);
-                            $amount_saved = $regular_price - $sale_price;
-                            if ($discount_percentage > $max_discount) {
-                                $max_discount = $discount_percentage;
-                                $max_amount_saved = $amount_saved;
-                            }
-                        }
+                    $variation_regular_price = floatval($variation_obj->get_regular_price());
+                    $variation_sale_price = floatval($variation_obj->get_sale_price());
+        
+                    if ($variation_obj->is_on_sale() && $variation_regular_price > 0 && $variation_sale_price > 0) {
+                        $variation_prices[] = [
+                            'regular' => $variation_regular_price,
+                            'sale' => $variation_sale_price,
+                            'discount' => round((($variation_regular_price - $variation_sale_price) / $variation_regular_price) * 100)
+                        ];
                     }
                 }
+        
+                if (!empty($variation_prices)) {
+                    // Find the maximum discount
+                    usort($variation_prices, function($a, $b) {
+                        return $b['discount'] <=> $a['discount'];
+                    });
+                    $regular_price = $variation_prices[0]['regular'];
+                    $sale_price = $variation_prices[0]['sale'];
+                    $max_discount = $variation_prices[0]['discount'];
+                    $max_amount_saved = $regular_price - $sale_price;
+                    $is_on_sale = true;
+                }
             } else if ($product->is_on_sale()) {
-            
                 $regular_price = floatval($product->get_regular_price());
                 $sale_price = floatval($product->get_sale_price());
-
-                if ($regular_price > 0) { // Ensure there's a valid regular price
+        
+                if ($regular_price > 0 && $sale_price > 0) {
                     $max_discount = round((($regular_price - $sale_price) / $regular_price) * 100);
                     $max_amount_saved = $regular_price - $sale_price;
+                    $is_on_sale = true;
                 }
             }
-
-            // Now, adjust the logic for displaying the discount label
-            // Check if there is a discount and if old discount is not disabled (not set to 0)
+        
+            // Adjust the logic for displaying the discount label
             if ($max_discount > 0) {
                 if ($old_discount != 0) {
                     // Show the discount including the old discount adjustment
-                    $carousel_html .= '<div class="discount-label"><s>-' . $max_discount - $old_discount . '%</s> -' . $max_discount . '%</div>';
+                    $carousel_html .= '<div class="discount-label"><s>-' . ($max_discount - $old_discount) . '%</s> -' . $max_discount . '%</div>';
                 } else {
                     // Old discount is disabled, show only the actual discount
                     $carousel_html .= '<div class="discount-label">-' . $max_discount . '%</div>';
                 }
             }
         
+            // Add product image and name
             $carousel_html .= '<img src="' . wp_get_attachment_url($product->get_image_id()) . '" alt="' . $product->get_name() . '" title="' . $product->get_name() . '">';
             $carousel_html .= '<h2>' . $product->get_name() . '</h2>';
-            $carousel_html .= '<span class="price"><small>' . $product->get_price_html() . '</small></span>';
-            
+        
+            // Price HTML including old price if on sale
+            if ($is_on_sale) {
+                $regular_price_html = wc_price($regular_price);
+                $sale_price_html = wc_price($sale_price);
+                $price_html = '<span class="price"><small><del aria-hidden="true">' . $regular_price_html . '</del>&nbsp;<ins aria-hidden="true">' . $sale_price_html . '</ins></small></span>';
+            } else {
+                $price_html = '<span class="price"><small>' . $product->get_price_html() . '</small></span>';
+            }
+            $carousel_html .= $price_html;
+        
             if ($max_discount > 0) {
                 $saved_formatted = wc_price($max_amount_saved);
                 $carousel_html .= "<p class='save-info'>{$save_text} {$max_discount}% ($saved_formatted)</p>";
             }
-
+        
             // Add to Cart button
             if ($product->is_type('simple')) {
-                // Simple product: Directly add the product to the cart
-                //$add_to_cart_url = '?add-to-cart=' . $product->get_id();
                 $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&source=upsell';
                 $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '">' . $add_to_cart_text . '</a>';
             } elseif ($product->is_type('variable')) {
-                // Variable product: Add the first available variation to the cart
                 $available_variations = $product->get_available_variations();
                 $first_variation_id = $available_variations[0]['variation_id'] ?? 0;
                 if ($first_variation_id > 0) {
-                    //$add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&variation_id=' . $first_variation_id;
                     $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&variation_id=' . $first_variation_id . '&source=upsell';
-                    // Automatically selecting the first variation attributes might be required, you can append them to the URL if needed
                     foreach ($available_variations[0]['attributes'] as $attr_key => $attr_value) {
                         $add_to_cart_url .= '&' . $attr_key . '=' . $attr_value;
                     }
                     $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '" data-variation_id="' . $first_variation_id . '">' . $add_to_cart_text . '</a>';
                 } else {
-                    // Fallback link to the product page if no variations are available
                     $product_url = get_permalink($product->get_id());
-                    //$carousel_html .= '<a href="' . esc_url($product_url) . '" class="button">Select Options</a>';
                     $carousel_html .= '<a href="' . esc_url($product_url) . '?source=upsell' . '" id="smartyCarousel" class="button">Select Options</a>';
                 }
             }
-            
+        
             $carousel_html .= '</div>';
-        }
+        }               
        
         $carousel_html .= '</div>';
 
         $carousel_html .= "<script>
             jQuery(document).ready(function($) {
-                $('.smarty-pc-carousel').slick({
+                $('#smarty-pc-woo-carousel').slick({
                     speed: " . intval($speed) . ",
                     autoplay: {$autoplay},
                     autoplaySpeed: " . intval($autoplay_speed) . ",
                     slidesToShow: " . $slides_to_show . ",
                     slidesToScroll: " . intval($options['smarty_pc_slides_to_scroll']) . ",
                     infinite: {$infinite},
-                    adaptiveHeight: 'false',
+                    adaptiveHeight: false,
                     arrows: {$display_arrows},
                     dots: {$display_dots},
                     responsive: [
@@ -874,18 +892,37 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                                 slidesToScroll: 1
                             }
                         }
-                        // You can add more breakpoints as needed
                     ]
                 });
-            });
 
-            jQuery(document.body).on('added_to_cart', function() {
-				if (window.location.href.indexOf('checkout') !== -1) {
-					window.location.reload();
-				} else {
-					jQuery(document.body).trigger('wc_fragment_refresh');
-				}
-			});                      
+                $(document).on('click', '#smarty-pc-woo-carousel a.add_to_cart_button', function(e) {
+                    e.preventDefault();
+                    var product_id = $(this).data('product_id');
+                    var order_id = $('#order_id').val();
+
+                    $.ajax({
+                        url: '" . admin_url('admin-ajax.php') . "',
+                        type: 'POST',
+                        data: {
+                            action: 'smarty_pc_add_to_order',
+                            product_id: product_id,
+                            order_id: order_id
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                alert('Product added to order');
+                                location.reload();
+                            } else {
+                                alert('Error: ' + response.data);
+                                if (response.data === 'Time expired') {
+                                    // Hide add to cart buttons if time expired
+                                    $('#smarty-pc-woo-carousel a.add_to_cart_button').hide();
+                                }
+                            }
+                        }
+                    });
+                });
+            });
         </script>";
 
         return $carousel_html;
@@ -947,4 +984,97 @@ if (!function_exists('smarty_pc_check_upsell_products_in_cart')) {
     add_action('woocommerce_before_cart', 'smarty_pc_check_upsell_products_in_cart');
     add_action('woocommerce_cart_item_removed', 'smarty_pc_check_upsell_products_in_cart');
     add_action('woocommerce_cart_updated', 'smarty_pc_check_upsell_products_in_cart');
+}
+
+if (!function_exists('smarty_pc_display_carousel_for_cod')) {
+    function smarty_pc_display_carousel_for_cod($order_id) {
+        if (!$order_id) return;
+
+        $order = wc_get_order($order_id);
+        if ($order->get_payment_method() == 'cod') {
+            echo do_shortcode('[smarty_pc_product_carousel slides_to_show="3" order_id="' . esc_attr($order_id) . '"]');
+
+            // Add a hidden input to store the order ID
+            echo '<input type="hidden" id="order_id" value="' . esc_attr($order_id) . '">';
+
+            // Get the order time and calculate expiry time
+            $order_time = get_post_meta($order_id, '_order_time', true);
+            $expiry_time = $order_time + 300; // 300 seconds = 5 minutes
+
+            // Get the current time in the WordPress timezone
+            $current_time = current_time('timestamp');
+
+            if ($current_time > $expiry_time) {
+                // Time expired message
+                echo '<p><small><strong>' . __('Time is expired:', 'smarty-product-carousel') . '</strong> ' . __('You can\'t add additional products to your order.', 'smarty-product-carousel') . '</small></p>';
+            
+                // Add JavaScript to hide the Add to Cart buttons
+                echo '<script type="text/javascript">
+                    jQuery(document).ready(function($) {
+                        $("#smarty-pc-woo-carousel a.add_to_cart_button").hide();
+                    });
+                </script>';
+            } else {
+                // Convert the expiry time to the WordPress timezone
+                $expiry_datetime = new DateTime();
+                $expiry_datetime->setTimestamp($expiry_time);
+                $expiry_time_formatted = $expiry_datetime->format('H:i:s');
+
+                // Display the expiry message
+                echo '<p><small>' . __('You can add additional products to your order until:', 'smarty-product-carousel') . ' ' . $expiry_time_formatted . '</small></p>';
+            }
+        }
+    }
+    add_action('woocommerce_thankyou', 'smarty_pc_display_carousel_for_cod', 5, 1);
+}
+
+if (!function_exists('smarty_pc_add_to_order')) {
+    function smarty_pc_add_to_order() {
+        if (!isset($_POST['product_id']) || !isset($_POST['order_id'])) {
+            wp_send_json_error('Invalid request');
+        }
+
+        $product_id = intval($_POST['product_id']);
+        $order_id = intval($_POST['order_id']);
+        $order = wc_get_order($order_id);
+
+        if (!$order) {
+            wp_send_json_error('Order not found');
+        }
+
+        $order_time = get_post_meta($order_id, '_order_time', true);
+        $current_time = current_time('timestamp');
+        $time_diff = $current_time - $order_time;
+
+        if ($time_diff > 300) { // 300 seconds = 5 minutes
+            wp_send_json_error('Time expired');
+        }
+
+        $product = wc_get_product($product_id);
+        if (!$product) {
+            wp_send_json_error('Product not found');
+        }
+
+        // Add the product to the order
+        $item_id = $order->add_product($product);
+        if (!$item_id) {
+            wp_send_json_error('Failed to add product to order');
+        }
+
+        // Recalculate totals
+        $order->calculate_totals();
+
+        wp_send_json_success('Product added to order');
+    }
+    add_action('wp_ajax_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
+    add_action('wp_ajax_nopriv_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
+}
+
+if (!function_exists('smarty_pc_store_order_time')) {
+    function smarty_pc_store_order_time($order_id) {
+        if (!get_post_meta($order_id, '_order_time', true)) {
+            update_post_meta($order_id, '_order_time', current_time('timestamp'));
+        }
+    }
+    add_action('woocommerce_checkout_order_processed', 'smarty_pc_store_order_time', 10, 1);
 }
