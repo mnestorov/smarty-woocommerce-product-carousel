@@ -1075,6 +1075,67 @@ if (!function_exists('smarty_pc_store_order_time')) {
         if (!get_post_meta($order_id, '_order_time', true)) {
             update_post_meta($order_id, '_order_time', current_time('timestamp'));
         }
+
+        if (!get_post_meta($order_id, '_is_completed', true)) {
+            update_post_meta($order_id, '_is_completed', 'no');
+        }
     }
     add_action('woocommerce_checkout_order_processed', 'smarty_pc_store_order_time', 10, 1);
+}
+
+// Schedule the cron job
+if (!function_exists('smarty_pc_schedule_order_check')) {
+    function smarty_pc_schedule_order_check() {
+        if (!wp_next_scheduled('smarty_pc_check_order_completion')) {
+            wp_schedule_event(time(), 'every_five_minutes', 'smarty_pc_check_order_completion');
+        }
+    }
+    add_action('wp', 'smarty_pc_schedule_order_check');
+}
+
+// Create a custom interval for the cron job
+if (!function_exists('smarty_pc_cron_schedules')) {
+    function smarty_pc_cron_schedules($schedules) {
+        $schedules['every_five_minutes'] = array(
+            'interval' => 300, // 300 seconds = 5 minutes
+            'display'  => __('Every Five Minutes')
+        );
+        return $schedules;
+    }
+    add_filter('cron_schedules', 'smarty_pc_cron_schedules');
+}
+
+// Function to check and update the is_completed field
+if (!function_exists('smarty_pc_check_order_completion')) {
+    function smarty_pc_check_order_completion() {
+        $args = array(
+            'limit' => -1,
+            'status' => array('processing', 'on-hold', 'completed'), // Adjust statuses as needed
+            'meta_query' => array(
+                array(
+                    'key' => '_is_completed',
+                    'value' => 'no',
+                ),
+            ),
+        );
+
+        $orders = wc_get_orders($args);
+        $current_time = current_time('timestamp');
+
+        foreach ($orders as $order) {
+            $order_time = get_post_meta($order->get_id(), '_order_time', true);
+            if (($current_time - $order_time) > 300) { // 300 seconds = 5 minutes
+                update_post_meta($order->get_id(), '_is_completed', 'yes');
+            }
+        }
+    }
+    add_action('smarty_pc_check_order_completion', 'smarty_pc_check_order_completion');
+}
+
+if (!function_exists('smarty_pc_deactivate')) {
+    function smarty_pc_deactivate() {
+        $timestamp = wp_next_scheduled('smarty_pc_check_order_completion');
+        wp_unschedule_event($timestamp, 'smarty_pc_check_order_completion');
+    }
+    register_deactivation_hook(__FILE__, 'smarty_pc_deactivate');
 }
