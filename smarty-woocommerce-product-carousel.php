@@ -623,6 +623,18 @@ if (!function_exists('smarty_pc_save_settings')) {
     add_action('admin_post_smarty_pc_save_settings', 'smarty_pc_save_settings');
 }
 
+if (!function_exists('smarty_pc_add_source_to_order_item_meta')) {
+    /**
+     * Display the source in the order details.
+     */
+    function smarty_pc_add_source_to_order_item_meta($item, $cart_item_key, $values, $order) {
+        if (isset($values['_source'])) {
+            $item->add_meta_data('_source', $values['_source'], true);
+        }
+    }
+    add_action('woocommerce_checkout_create_order_line_item', 'smarty_pc_add_source_to_order_item_meta', 10, 4);
+}
+
 if (!function_exists('smarty_pc_search_products')) {
     function smarty_pc_search_products() {
         if (!current_user_can('manage_options')) wp_die('Unauthorized');
@@ -664,10 +676,24 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
         $attributes = shortcode_atts(
             array(
                 'slides_to_show' => $plugin_slides_to_show, // Use the plugin setting as the default value
+                'source'         => 'checkout_page', // Default value
             ), 
             $atts, 
             'smarty_pc_product_carousel'
         );
+
+        $source = $attributes['source'];
+        $order_id = intval($attributes['order_id']);
+        $order_product_ids = array();
+
+        if ($source === 'thankyou_page' && $order_id > 0) {
+            $order = wc_get_order($order_id);
+            if ($order) {
+                foreach ($order->get_items() as $item) {
+                    $order_product_ids[] = $item->get_product_id();
+                }
+            }
+        }
 
         // IDs from settings
         $saved_ids = isset($options['products']) ? $options['products'] : [];
@@ -834,17 +860,17 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
         
             // Add to Cart button
             if ($product->is_type('simple')) {
-                $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&source=upsell';
-                $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '">' . $add_to_cart_text . '</a>';
+                $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&source=' . $source;
+                $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '" data-source="' . esc_attr($source) . '">' . $add_to_cart_text . '</a>';
             } elseif ($product->is_type('variable')) {
                 $available_variations = $product->get_available_variations();
                 $first_variation_id = $available_variations[0]['variation_id'] ?? 0;
                 if ($first_variation_id > 0) {
-                    $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&variation_id=' . $first_variation_id . '&source=upsell';
+                    $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&variation_id=' . $first_variation_id . '&source=' . $source;
                     foreach ($available_variations[0]['attributes'] as $attr_key => $attr_value) {
                         $add_to_cart_url .= '&' . $attr_key . '=' . $attr_value;
                     }
-                    $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '" data-variation_id="' . $first_variation_id . '">' . $add_to_cart_text . '</a>';
+                    $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '" data-source="' . esc_attr($source) . '" data-variation_id="' . $first_variation_id . '">' . $add_to_cart_text . '</a>';
                 } else {
                     $product_url = get_permalink($product->get_id());
                     $carousel_html .= '<a href="' . esc_url($product_url) . '?source=upsell' . '" id="smartyCarousel" class="button">Select Options</a>';
@@ -898,7 +924,25 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                 $(document).on('click', '#smarty-pc-woo-carousel a.add_to_cart_button', function(e) {
                     e.preventDefault();
                     var product_id = $(this).data('product_id');
-                    var order_id = $('#order_id').val();
+                    var order_id = $('#order_id').val() || 0; // Default to 0 if not found
+                    var source = $(this).data('source');
+
+                    if (!product_id || !source) {
+                        alert('Missing product_id or source.');
+                        console.log('Missing parameters:', {
+                            product_id: product_id,
+                            source: source,
+                            order_id: order_id
+                        });
+                        return;
+                    }
+
+                    console.log('Sending AJAX request with:', {
+                        action: 'smarty_pc_add_to_order',
+                        product_id: product_id,
+                        order_id: order_id,
+                        source: source
+                    });
 
                     $.ajax({
                         url: '" . admin_url('admin-ajax.php') . "',
@@ -906,19 +950,29 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                         data: {
                             action: 'smarty_pc_add_to_order',
                             product_id: product_id,
-                            order_id: order_id
+                            order_id: order_id,
+                            source: source
                         },
                         success: function(response) {
                             if (response.success) {
                                 alert('Product added to order');
-                                location.reload();
+                                location.reload(); // Reload the page after successful addition
                             } else {
                                 alert('Error: ' + response.data);
+                                console.log('Error response:', response);
                                 if (response.data === 'Time expired') {
                                     // Hide add to cart buttons if time expired
                                     $('#smarty-pc-woo-carousel a.add_to_cart_button').hide();
                                 }
                             }
+                        },
+                        error: function(xhr, status, error) {
+                            alert('AJAX request failed: ' + error);
+                            console.log('AJAX request failed:', {
+                                xhr: xhr,
+                                status: status,
+                                error: error
+                            });
                         }
                     });
                 });
@@ -992,7 +1046,7 @@ if (!function_exists('smarty_pc_display_carousel_for_cod')) {
 
         $order = wc_get_order($order_id);
         if ($order->get_payment_method() == 'cod') {
-            echo do_shortcode('[smarty_pc_product_carousel slides_to_show="3" order_id="' . esc_attr($order_id) . '"]');
+            echo do_shortcode('[smarty_pc_product_carousel slides_to_show="3" source="thankyou_page" order_id="' . esc_attr($order_id) . '"]');
 
             // Add a hidden input to store the order ID
             echo '<input type="hidden" id="order_id" value="' . esc_attr($order_id) . '">';
@@ -1030,15 +1084,30 @@ if (!function_exists('smarty_pc_display_carousel_for_cod')) {
 
 if (!function_exists('smarty_pc_add_to_order')) {
     function smarty_pc_add_to_order() {
-        if (!isset($_POST['product_id']) || !isset($_POST['order_id'])) {
-            wp_send_json_error('Invalid request');
+        if (!isset($_POST['product_id']) || !isset($_POST['source'])) {
+            error_log('Invalid request: Missing parameters');
+            wp_send_json_error('Invalid request: Missing parameters');
         }
 
         $product_id = intval($_POST['product_id']);
-        $order_id = intval($_POST['order_id']);
-        $order = wc_get_order($order_id);
+        $order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0; // Default to 0 if not set
+        $source = sanitize_text_field($_POST['source']);
 
-        if (!$order) {
+        if ($product_id <= 0 || empty($source)) {
+            error_log('Invalid request: Invalid parameters');
+            wp_send_json_error('Invalid request: Invalid parameters');
+        }
+
+        if ($source === 'thankyou_page' && $order_id <= 0) {
+            error_log('Invalid request: Missing order_id for thankyou_page');
+            wp_send_json_error('Invalid request: Missing order_id for thankyou_page');
+        }
+
+        error_log("Processing add to order for product_id: $product_id, order_id: $order_id, source: $source");
+
+        $order = wc_get_order($order_id);
+        if ($source === 'thankyou_page' && !$order) {
+            error_log('Order not found for order_id: ' . $order_id);
             wp_send_json_error('Order not found');
         }
 
@@ -1046,29 +1115,44 @@ if (!function_exists('smarty_pc_add_to_order')) {
         $current_time = current_time('timestamp');
         $time_diff = $current_time - $order_time;
 
-        if ($time_diff > 300) { // 300 seconds = 5 minutes
+        if ($source === 'thankyou_page' && $time_diff > 300) { // 300 seconds = 5 minutes
+            error_log('Time expired for order_id: ' . $order_id);
             wp_send_json_error('Time expired');
         }
 
         $product = wc_get_product($product_id);
         if (!$product) {
+            error_log('Product not found for product_id: ' . $product_id);
             wp_send_json_error('Product not found');
         }
 
-        // Add the product to the order
-        $item_id = $order->add_product($product);
-        if (!$item_id) {
-            wp_send_json_error('Failed to add product to order');
+        if ($source === 'thankyou_page') {
+            // Add the product to the order
+            $item_id = $order->add_product($product);
+            if (!$item_id) {
+                error_log('Failed to add product to order for product_id: ' . $product_id . ', order_id: ' . $order_id);
+                wp_send_json_error('Failed to add product to order');
+            }
+
+            // Add the source as order item meta
+            wc_add_order_item_meta($item_id, '_source', $source);
+
+            // Recalculate totals
+            $order->calculate_totals();
+
+            error_log('Successfully added product to order for product_id: ' . $product_id . ', order_id: ' . $order_id);
+        } else {
+            // For 'checkout_page', just add the product to the cart
+            WC()->cart->add_to_cart($product_id);
+            error_log('Successfully added product to cart for product_id: ' . $product_id);
         }
 
-        // Recalculate totals
-        $order->calculate_totals();
-
-        wp_send_json_success('Product added to order');
+        wp_send_json_success('Product added successfully');
     }
     add_action('wp_ajax_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
     add_action('wp_ajax_nopriv_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
 }
+
 
 if (!function_exists('smarty_pc_store_order_time')) {
     function smarty_pc_store_order_time($order_id) {
@@ -1138,4 +1222,30 @@ if (!function_exists('smarty_pc_deactivate')) {
         wp_unschedule_event($timestamp, 'smarty_pc_check_order_completion');
     }
     register_deactivation_hook(__FILE__, 'smarty_pc_deactivate');
+}
+
+if (!function_exists('smarty_pc_add_source_column_header')) {
+    function smarty_pc_add_source_column_header() {
+        echo '<th class="source">Source</th>';
+    }
+    add_action('woocommerce_admin_order_item_headers', 'smarty_pc_add_source_column_header');
+}
+
+if (!function_exists('smarty_pc_add_source_column_value')) {
+    function smarty_pc_add_source_column_value($product, $item, $item_id) {
+        $source = wc_get_order_item_meta($item_id, '_source', true);
+        echo '<td class="source">' . esc_html($source) . '</td>';
+    }
+    add_action('woocommerce_admin_order_item_values', 'smarty_pc_add_source_column_value', 10, 3);
+}
+
+if (!function_exists('smarty_pc_hide_source_meta')) {
+    /**
+     * Hide the _source meta key from the admin order view
+     */
+    function smarty_pc_hide_source_meta($hidden_meta_keys) {
+        $hidden_meta_keys[] = '_source';
+        return $hidden_meta_keys;
+    }
+    add_filter('woocommerce_hidden_order_itemmeta', 'smarty_pc_hide_source_meta');
 }
