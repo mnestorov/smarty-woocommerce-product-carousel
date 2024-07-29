@@ -924,11 +924,11 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                 $(document).on('click', '#smarty-pc-woo-carousel a.add_to_cart_button', function(e) {
                     e.preventDefault();
                     var product_id = $(this).data('product_id');
-                    var order_id = $('#order_id').val() || 0; // Default to 0 if not found
                     var source = $(this).data('source');
-
+                    var order_id = $('#order_id').val() || 0; // Default to 0 if not found
+                    
                     if (!product_id || !source) {
-                        alert('Missing product_id or source.');
+                        //alert('Missing product_id or source.');
                         console.log('Missing parameters:', {
                             product_id: product_id,
                             source: source,
@@ -955,7 +955,7 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                         },
                         success: function(response) {
                             if (response.success) {
-                                alert('Product added to order');
+                                //alert('Product added to order');
                                 location.reload(); // Reload the page after successful addition
                             } else {
                                 alert('Error: ' + response.data);
@@ -1085,8 +1085,8 @@ if (!function_exists('smarty_pc_display_carousel_for_cod')) {
 if (!function_exists('smarty_pc_add_to_order')) {
     function smarty_pc_add_to_order() {
         if (!isset($_POST['product_id']) || !isset($_POST['source'])) {
-            error_log('Invalid request: Missing parameters');
-            wp_send_json_error('Invalid request: Missing parameters');
+            wc_add_notice(__('Invalid request: Missing parameters', 'smarty-product-carousel'), 'error');
+            wp_send_json_error(array('message' => __('Invalid request: Missing parameters', 'smarty-product-carousel')));
         }
 
         $product_id = intval($_POST['product_id']);
@@ -1094,21 +1094,19 @@ if (!function_exists('smarty_pc_add_to_order')) {
         $source = sanitize_text_field($_POST['source']);
 
         if ($product_id <= 0 || empty($source)) {
-            error_log('Invalid request: Invalid parameters');
-            wp_send_json_error('Invalid request: Invalid parameters');
+            wc_add_notice(__('Invalid request: Invalid parameters', 'smarty-product-carousel'), 'error');
+            wp_send_json_error(array('message' => __('Invalid request: Invalid parameters', 'smarty-product-carousel')));
         }
 
         if ($source === 'thankyou_page' && $order_id <= 0) {
-            error_log('Invalid request: Missing order_id for thankyou_page');
-            wp_send_json_error('Invalid request: Missing order_id for thankyou_page');
+            wc_add_notice(__('Invalid request: Missing order_id for thankyou_page', 'smarty-product-carousel'), 'error');
+            wp_send_json_error(array('message' => __('Invalid request: Missing order_id for thankyou_page', 'smarty-product-carousel')));
         }
-
-        error_log("Processing add to order for product_id: $product_id, order_id: $order_id, source: $source");
 
         $order = wc_get_order($order_id);
         if ($source === 'thankyou_page' && !$order) {
-            error_log('Order not found for order_id: ' . $order_id);
-            wp_send_json_error('Order not found');
+            wc_add_notice(__('Order not found.', 'smarty-product-carousel'), 'error');
+            wp_send_json_error(array('message' => __('Order not found.', 'smarty-product-carousel')));
         }
 
         $order_time = get_post_meta($order_id, '_order_time', true);
@@ -1116,22 +1114,22 @@ if (!function_exists('smarty_pc_add_to_order')) {
         $time_diff = $current_time - $order_time;
 
         if ($source === 'thankyou_page' && $time_diff > 300) { // 300 seconds = 5 minutes
-            error_log('Time expired for order_id: ' . $order_id);
-            wp_send_json_error('Time expired');
+            wc_add_notice(__('Time expired.', 'smarty-product-carousel'), 'error');
+            wp_send_json_error(array('message' => __('Time expired.', 'smarty-product-carousel')));
         }
 
         $product = wc_get_product($product_id);
         if (!$product) {
-            error_log('Product not found for product_id: ' . $product_id);
-            wp_send_json_error('Product not found');
+            wc_add_notice(__('Product not found.', 'smarty-product-carousel'), 'error');
+            wp_send_json_error(array('message' => __('Product not found.', 'smarty-product-carousel')));
         }
 
         if ($source === 'thankyou_page') {
             // Add the product to the order
             $item_id = $order->add_product($product);
             if (!$item_id) {
-                error_log('Failed to add product to order for product_id: ' . $product_id . ', order_id: ' . $order_id);
-                wp_send_json_error('Failed to add product to order');
+                wc_add_notice(__('Failed to add product to order.', 'smarty-product-carousel'), 'error');
+                wp_send_json_error(array('message' => __('Failed to add product to order.', 'smarty-product-carousel')));
             }
 
             // Add the source as order item meta
@@ -1140,19 +1138,27 @@ if (!function_exists('smarty_pc_add_to_order')) {
             // Recalculate totals
             $order->calculate_totals();
 
-            error_log('Successfully added product to order for product_id: ' . $product_id . ', order_id: ' . $order_id);
+            wc_add_notice(__('Product added successfully.', 'smarty-product-carousel'), 'success');
         } else {
             // For 'checkout_page', just add the product to the cart
             WC()->cart->add_to_cart($product_id);
-            error_log('Successfully added product to cart for product_id: ' . $product_id);
+            wc_add_notice(__('Product added to cart successfully.', 'smarty-product-carousel'), 'success');
         }
 
-        wp_send_json_success('Product added successfully');
+        wp_send_json_success(array('message' => __('Product added successfully.', 'smarty-product-carousel')));
     }
     add_action('wp_ajax_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
     add_action('wp_ajax_nopriv_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
 }
 
+if (!function_exists('smarty_pc_display_woocommerce_notices')) {
+    function smarty_pc_display_woocommerce_notices() {
+        if (function_exists('wc_print_notices')) {
+            wc_print_notices();
+        }
+    }
+    add_action('woocommerce_before_thankyou', 'smarty_pc_display_woocommerce_notices', 20);
+}
 
 if (!function_exists('smarty_pc_store_order_time')) {
     function smarty_pc_store_order_time($order_id) {
@@ -1182,7 +1188,7 @@ if (!function_exists('smarty_pc_cron_schedules')) {
     function smarty_pc_cron_schedules($schedules) {
         $schedules['every_five_minutes'] = array(
             'interval' => 300, // 300 seconds = 5 minutes
-            'display'  => __('Every Five Minutes')
+            'display'  => __('Every Five Minutes', 'smarty-product-carousel')
         );
         return $schedules;
     }
@@ -1226,7 +1232,7 @@ if (!function_exists('smarty_pc_deactivate')) {
 
 if (!function_exists('smarty_pc_add_source_column_header')) {
     function smarty_pc_add_source_column_header() {
-        echo '<th class="source">Source</th>';
+        echo '<th class="source">' . __('Source', 'smarty-product-carousel') . '</th>';
     }
     add_action('woocommerce_admin_order_item_headers', 'smarty_pc_add_source_column_header');
 }
