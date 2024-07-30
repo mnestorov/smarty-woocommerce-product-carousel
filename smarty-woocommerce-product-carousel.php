@@ -682,7 +682,7 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
             'smarty_pc_product_carousel'
         );
 
-        $source = $attributes['source'];
+        $source = $attributes['source']; // Extract the source attribute
         $order_id = intval($attributes['order_id']);
         $order_product_ids = array();
 
@@ -926,6 +926,10 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                     var product_id = $(this).data('product_id');
                     var source = $(this).data('source');
                     var order_id = $('#order_id').val() || 0; // Default to 0 if not found
+
+                    console.log('Product ID:', product_id);
+                    console.log('Source:', source);
+                    console.log('Order ID:', order_id);
                     
                     if (!product_id || !source) {
                         //alert('Missing product_id or source.');
@@ -958,16 +962,18 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                                 //alert('Product added to order');
                                 location.reload(); // Reload the page after successful addition
                             } else {
-                                alert('Error: ' + response.data);
+                                var errorMessage = response.data.message || 'Unknown error occurred.';
+                                alert('Error: ' + errorMessage); // Display the error message
                                 console.log('Error response:', response);
-                                if (response.data === 'Time expired') {
+
+                                if (errorMessage === 'Time expired.') {
                                     // Hide add to cart buttons if time expired
                                     $('#smarty-pc-woo-carousel a.add_to_cart_button').hide();
                                 }
                             }
                         },
                         error: function(xhr, status, error) {
-                            alert('AJAX request failed: ' + error);
+                            //alert('AJAX request failed: ' + error);
                             console.log('AJAX request failed:', {
                                 xhr: xhr,
                                 status: status,
@@ -1138,6 +1144,9 @@ if (!function_exists('smarty_pc_add_to_order')) {
             // Recalculate totals
             $order->calculate_totals();
 
+            // Send email with updated order details
+            smarty_pc_send_order_update_email($order);
+
             wc_add_notice(__('Product added successfully.', 'smarty-product-carousel'), 'success');
         } else {
             // For 'checkout_page', just add the product to the cart
@@ -1149,6 +1158,41 @@ if (!function_exists('smarty_pc_add_to_order')) {
     }
     add_action('wp_ajax_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
     add_action('wp_ajax_nopriv_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
+}
+
+if (!function_exists('smarty_pc_send_order_update_email')) {
+    /**
+     * Send an updated order email to the customer
+     */
+    function smarty_pc_send_order_update_email($order_id) {
+        $order = wc_get_order($order_id);
+
+        // Ensure the order exists
+        if (!$order) {
+            return;
+        }
+
+        // Get WooCommerce mailer
+        $mailer = WC()->mailer();
+        $emails = $mailer->get_emails();
+
+        // Ensure the email exists
+        if (!isset($emails['WC_Email_Customer_Processing_Order'])) {
+            return;
+        }
+
+        // Customer email
+        $email_recipient = $order->get_billing_email();
+
+        // Trigger the email
+        $emails['WC_Email_Customer_Processing_Order']->trigger($order_id);
+
+        // Optionally, you can log or debug email sending
+        //error_log('Order update email sent to ' . $email_recipient);
+    }
+
+    // Hook the email function to your order update process
+    add_action('woocommerce_order_status_changed', 'smarty_pc_send_order_update_email');
 }
 
 if (!function_exists('smarty_pc_display_woocommerce_notices')) {
