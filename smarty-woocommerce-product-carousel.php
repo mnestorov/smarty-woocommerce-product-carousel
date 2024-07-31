@@ -922,9 +922,9 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                     var source = $(this).data('source');
                     var order_id = $('#order_id').val() || 0; // Default to 0 if not found
 
-                    console.log('Product ID:', product_id);
-                    console.log('Source:', source);
-                    console.log('Order ID:', order_id);
+                    //console.log('Product ID:', product_id);
+                    //console.log('Source:', source);
+                    //console.log('Order ID:', order_id);
                     
                     if (!product_id || !source) {
                         //alert('Missing product_id or source.');
