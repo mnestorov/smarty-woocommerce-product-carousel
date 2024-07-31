@@ -1,13 +1,14 @@
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: SM - WooCommerce Product Carousel\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-26 12:25+0000\n"
-"PO-Revision-Date: 2024-07-29 12:42+0000\n"
-"Last-Translator: Martin Nestorov\n"
-"Language-Team: Български\n"
-"Language: bg_BG\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"POT-Creation-Date: 2024-07-31 08:50+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -57,12 +58,9 @@ msgstr ""
 msgid "Enter a custom title for your product carousel."
 msgstr ""
 
-#: smarty-woocommerce-product-carousel.php:390
+#: smarty-woocommerce-product-carousel.php:390 
 #: smarty-woocommerce-product-carousel.php:410
 msgid "Example: #cc0000"
-msgstr ""
-
-msgid "Failed to add product to order."
 msgstr ""
 
 #. Author URI of the plugin
@@ -71,27 +69,6 @@ msgstr ""
 
 #. URI of the plugin
 msgid "https://smartystudio.net/smarty-product-carousel"
-msgstr ""
-
-msgid "Invalid request: Invalid parameters"
-msgstr ""
-
-msgid "Invalid request: Missing order_id for thankyou_page"
-msgstr ""
-
-msgid "Invalid request: Missing parameters"
-msgstr ""
-
-msgid "Order not found."
-msgstr ""
-
-msgid "Product added successfully."
-msgstr ""
-
-msgid "Product added to cart successfully."
-msgstr ""
-
-msgid "Product not found."
 msgstr ""
 
 #: smarty-woocommerce-product-carousel.php:108
@@ -148,9 +125,6 @@ msgstr ""
 msgid "Smarty Studio | Martin Nestorov"
 msgstr ""
 
-msgid "Time expired."
-msgstr ""
-
 #: smarty-woocommerce-product-carousel.php:1009
 msgid "Time is expired:"
 msgstr ""
@@ -165,4 +139,34 @@ msgstr ""
 
 #: smarty-woocommerce-product-carousel.php:980
 msgid "You cannot have only upsell products in the cart."
+msgstr ""
+
+msgid "Product added successfully."
+msgstr ""
+
+msgid "Product added to cart successfully."
+msgstr ""
+
+msgid "Failed to add product to order."
+msgstr ""
+
+msgid "Product not found."
+msgstr ""
+
+msgid "Time expired."
+msgstr ""
+
+msgid "Order not found."
+msgstr ""
+
+msgid "Invalid request: Invalid parameters"
+msgstr ""
+
+msgid "Invalid request: Missing order_id for thankyou_page"
+msgstr ""
+
+msgid "Invalid request: Missing parameters"
+msgstr ""
+
+msgid "Source"
 msgstr ""
