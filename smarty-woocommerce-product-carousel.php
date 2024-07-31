@@ -623,6 +623,23 @@ if (!function_exists('smarty_pc_save_settings')) {
     add_action('admin_post_smarty_pc_save_settings', 'smarty_pc_save_settings');
 }
 
+if (!function_exists('smarty_pc_add_source_to_order_item_meta')) {
+    /**
+     * Add the source to order item meta data.
+     */
+    function smarty_pc_add_source_to_order_item_meta($item, $cart_item_key, $values, $order) {
+        $product_id = $values['data']->get_id();
+        if ($product_id) {
+            $source = WC()->session->get('_source_' . $product_id);
+            if ($source) {
+                $item->add_meta_data('_source', $source, true);
+                WC()->session->__unset('_source_' . $product_id); // Clear the session data
+            }
+        }
+    }
+    add_action('woocommerce_checkout_create_order_line_item', 'smarty_pc_add_source_to_order_item_meta', 10, 4);
+}
+
 if (!function_exists('smarty_pc_search_products')) {
     function smarty_pc_search_products() {
         if (!current_user_can('manage_options')) wp_die('Unauthorized');
@@ -928,20 +945,20 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                     
                     if (!product_id || !source) {
                         //alert('Missing product_id or source.');
-                        console.log('Missing parameters:', {
-                            product_id: product_id,
-                            source: source,
-                            order_id: order_id
-                        });
+                        //console.log('Missing parameters:', {
+                            //product_id: product_id,
+                            //source: source,
+                            //order_id: order_id
+                        //});
                         return;
                     }
 
-                    console.log('Sending AJAX request with:', {
-                        action: 'smarty_pc_add_to_order',
-                        product_id: product_id,
-                        order_id: order_id,
-                        source: source
-                    });
+                    //console.log('Sending AJAX request with:', {
+                        //action: 'smarty_pc_add_to_order',
+                        //product_id: product_id,
+                        //order_id: order_id,
+                        //source: source
+                    //});
 
                     $.ajax({
                         url: '" . admin_url('admin-ajax.php') . "',
@@ -959,7 +976,7 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                             } else {
                                 var errorMessage = response.data.message || 'Unknown error occurred.';
                                 alert('Error: ' + errorMessage); // Display the error message
-                                console.log('Error response:', response);
+                                //console.log('Error response:', response);
 
                                 if (errorMessage === 'Time expired.') {
                                     // Hide add to cart buttons if time expired
@@ -969,11 +986,11 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                         },
                         error: function(xhr, status, error) {
                             //alert('AJAX request failed: ' + error);
-                            console.log('AJAX request failed:', {
-                                xhr: xhr,
-                                status: status,
-                                error: error
-                            });
+                            //console.log('AJAX request failed:', {
+                                //xhr: xhr,
+                                //status: status,
+                                //error: error
+                            //});
                         }
                     });
                 });
@@ -983,23 +1000,6 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
         return $carousel_html;
     }
     add_shortcode('smarty_pc_product_carousel', 'smarty_pc_product_carousel_shortcode');
-}
-
-if (!function_exists('smarty_pc_add_source_to_order_item_meta')) {
-    /**
-     * Add the source to order item meta data.
-     */
-    function smarty_pc_add_source_to_order_item_meta($item, $cart_item_key, $values, $order) {
-        $product_id = $values['data']->get_id();
-        if ($product_id) {
-            $source = WC()->session->get('_source_' . $product_id);
-            if ($source) {
-                $item->add_meta_data('_source', $source, true);
-                WC()->session->__unset('_source_' . $product_id); // Clear the session data
-            }
-        }
-    }
-    add_action('woocommerce_checkout_create_order_line_item', 'smarty_pc_add_source_to_order_item_meta', 10, 4);
 }
 
 if (!function_exists('smarty_pc_get_cart_product_names')) {
