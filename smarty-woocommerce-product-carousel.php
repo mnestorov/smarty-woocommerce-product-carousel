@@ -623,18 +623,6 @@ if (!function_exists('smarty_pc_save_settings')) {
     add_action('admin_post_smarty_pc_save_settings', 'smarty_pc_save_settings');
 }
 
-if (!function_exists('smarty_pc_add_source_to_order_item_meta')) {
-    /**
-     * Display the source in the order details.
-     */
-    function smarty_pc_add_source_to_order_item_meta($item, $cart_item_key, $values, $order) {
-        if (isset($values['_source'])) {
-            $item->add_meta_data('_source', $values['_source'], true);
-        }
-    }
-    add_action('woocommerce_checkout_create_order_line_item', 'smarty_pc_add_source_to_order_item_meta', 10, 4);
-}
-
 if (!function_exists('smarty_pc_search_products')) {
     function smarty_pc_search_products() {
         if (!current_user_can('manage_options')) wp_die('Unauthorized');
@@ -677,6 +665,7 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
             array(
                 'slides_to_show' => $plugin_slides_to_show, // Use the plugin setting as the default value
                 'source'         => 'checkout_page', // Default value
+                'order_id'       => 0,
             ), 
             $atts, 
             'smarty_pc_product_carousel'
@@ -686,12 +675,18 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
         $order_id = intval($attributes['order_id']);
         $order_product_ids = array();
 
+         // Handle different sources
         if ($source === 'thankyou_page' && $order_id > 0) {
             $order = wc_get_order($order_id);
             if ($order) {
                 foreach ($order->get_items() as $item) {
                     $order_product_ids[] = $item->get_product_id();
                 }
+            }
+        } elseif ($source === 'checkout_page' || $source === 'mini_cart') {
+            // Logic for checkout page and mini cart upsells
+            foreach (WC()->cart->get_cart() as $cart_item) {
+                $order_product_ids[] = $cart_item['product_id'];
             }
         }
 
@@ -990,6 +985,23 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
     add_shortcode('smarty_pc_product_carousel', 'smarty_pc_product_carousel_shortcode');
 }
 
+if (!function_exists('smarty_pc_add_source_to_order_item_meta')) {
+    /**
+     * Add the source to order item meta data.
+     */
+    function smarty_pc_add_source_to_order_item_meta($item, $cart_item_key, $values, $order) {
+        $product_id = $values['data']->get_id();
+        if ($product_id) {
+            $source = WC()->session->get('_source_' . $product_id);
+            if ($source) {
+                $item->add_meta_data('_source', $source, true);
+                WC()->session->__unset('_source_' . $product_id); // Clear the session data
+            }
+        }
+    }
+    add_action('woocommerce_checkout_create_order_line_item', 'smarty_pc_add_source_to_order_item_meta', 10, 4);
+}
+
 if (!function_exists('smarty_pc_get_cart_product_names')) {
     function smarty_pc_get_cart_product_names() {
         $names = [];
@@ -1149,8 +1161,9 @@ if (!function_exists('smarty_pc_add_to_order')) {
 
             wc_add_notice(__('Product added successfully.', 'smarty-product-carousel'), 'success');
         } else {
-            // For 'checkout_page', just add the product to the cart
+            // For 'checkout_page' and 'mini_cart', just add the product to the cart
             WC()->cart->add_to_cart($product_id);
+            WC()->session->set('_source_' . $product_id, $source); // Store source in session
             wc_add_notice(__('Product added to cart successfully.', 'smarty-product-carousel'), 'success');
         }
 
