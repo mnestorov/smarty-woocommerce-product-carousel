@@ -1230,8 +1230,10 @@ if (!function_exists('smarty_pc_store_order_time')) {
     add_action('woocommerce_checkout_order_processed', 'smarty_pc_store_order_time', 10, 1);
 }
 
-// Schedule the cron job
 if (!function_exists('smarty_pc_schedule_order_check')) {
+    /**
+     * Schedule the cron job.
+     */
     function smarty_pc_schedule_order_check() {
         if (!wp_next_scheduled('smarty_pc_check_order_completion')) {
             wp_schedule_event(time(), 'every_five_minutes', 'smarty_pc_check_order_completion');
@@ -1240,8 +1242,10 @@ if (!function_exists('smarty_pc_schedule_order_check')) {
     add_action('wp', 'smarty_pc_schedule_order_check');
 }
 
-// Create a custom interval for the cron job
 if (!function_exists('smarty_pc_cron_schedules')) {
+    /**
+     * Create a custom interval for the cron job.
+     */
     function smarty_pc_cron_schedules($schedules) {
         $schedules['every_five_minutes'] = array(
             'interval' => 300, // 300 seconds = 5 minutes
@@ -1252,8 +1256,10 @@ if (!function_exists('smarty_pc_cron_schedules')) {
     add_filter('cron_schedules', 'smarty_pc_cron_schedules');
 }
 
-// Function to check and update the is_completed field
 if (!function_exists('smarty_pc_check_order_completion')) {
+    /**
+     * Function to check and update the is_completed field.
+     */
     function smarty_pc_check_order_completion() {
         $args = array(
             'limit' => -1,
@@ -1271,6 +1277,10 @@ if (!function_exists('smarty_pc_check_order_completion')) {
 
         foreach ($orders as $order) {
             $order_time = get_post_meta($order->get_id(), '_order_time', true);
+
+            // Ensure $order_time is an integer
+            $order_time = (int)$order_time;
+
             if (($current_time - $order_time) > 300) { // 300 seconds = 5 minutes
                 update_post_meta($order->get_id(), '_is_completed', 'yes');
             }
