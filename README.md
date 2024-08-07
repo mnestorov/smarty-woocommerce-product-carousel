@@ -13,11 +13,18 @@ The Smarty Studio WooCommerce Product Carousel plugin provides a sleek and custo
 
 ## Features
 
-- Customizable product selection: Choose exactly which products you want to display in the carousel.
-- Responsive design: Ensures a great experience across all devices.
-- Customizable texts: Easily change the texts for "Save", "Add To Cart", and "Exclusive" directly from the plugin's settings.
-- Variable product support: Displays discounts and allows users to add variable products to their cart from the carousel.
-- Styling options: Modify the appearance of the carousel with custom CSS.
+- **Customizable product selection:** Choose exactly which products you want to display in the carousel.
+- **Responsive design:** Ensures a great experience across all devices.
+- **Customizable texts:** Easily change the texts for "Save", "Add To Cart", and "Exclusive" directly from the plugin's settings.
+- **Variable product support:** Displays discounts and allows users to add variable products to their cart from the carousel.
+- **Styling options:** Modify the appearance of the carousel with custom CSS.
+- Supports WooCommerce up-sell and cross-sell features.
+- Admin settings to customize the number of slides to show, slides to scroll, autoplay, and speed.
+- Display the carousel on checkout and thank you pages with specific order details.
+- AJAX-based product search for quick selection in the admin panel.
+- Integration with Select2 for enhanced product selection in settings.
+- Custom CSS to further customize the carousel appearance.
+- Time-based restrictions for adding products post-purchase.
 
 ## Installation
 
@@ -26,11 +33,49 @@ The Smarty Studio WooCommerce Product Carousel plugin provides a sleek and custo
 
 ## Usage
 
-To display the product carousel, use the shortcode `[smarty_product_carousel]` in your posts or pages. Customize it further with shortcode attributes or via the plugin's settings page.
+To display the product carousel, use the shortcode `[smarty_pc_product_carousel]` in your posts or pages. You can customize the carousel further with shortcode attributes or via the plugin's settings page.
 
-## Customizing Texts
+### Shortcode Attributes
+
+- **ids:** Comma-separated list of product IDs to display in the carousel.
+- **speed:** Scrolling speed in milliseconds (default is 300).
+- **autoplay:** Enable or disable autoplay (true or false).
+- **autoplay_speed:** Speed of autoplay in milliseconds (default is 3000).
+- **slides_to_show:** Number of slides to show at once (default is based on the plugin settings).
+- **source:** Source context for the carousel (e.g., checkout_page, thankyou_page).
+- **order_id:** Order ID to reference on thank you pages.
+
+### Example Shortcode Usage
+
+```php
+[smarty_pc_product_carousel ids="1,2,3" speed="500" autoplay="true" autoplay_speed="3000" slides_to_show="1"]
+```
+
+### Customizing Texts
 
 Navigate to the plugin's settings under the WooCommerce section in your WordPress admin. Here you can find options to customize the texts for "Save", "Add To Cart", and "Exclusive".
+
+### Admin Settings
+
+Go to _WooCommerce > Products Carousel_. Customize various settings such as:
+
+- Display Arrows
+- Arrow Color
+- Display Dots
+- Dot Color
+- Slides to Show
+- Slides to Scroll
+- Slide Padding
+- Scrolling Speed
+- Autoplay Indicator
+- Autoplay Speed
+- Infinite Loop
+- Old Discount
+- Custom Title
+- Save Text
+- Add To Cart Text
+- Label Text
+- Custom CSS
 
 ## Requirements
 
