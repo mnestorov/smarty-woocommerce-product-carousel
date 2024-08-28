@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: SM - WooCommerce Product Carousel
- * Plugin URI:  https://smartystudio.net/smarty-product-carousel
+ * Plugin URI:  https://github.com/smartystudio/smarty-woocommerce-product-carousel
  * Description: A custom WooCommerce product carousel plugin.
  * Version:     1.0.0
  * Author:      Smarty Studio | Martin Nestorov
