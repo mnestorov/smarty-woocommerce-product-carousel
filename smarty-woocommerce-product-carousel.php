@@ -1222,8 +1222,11 @@ if (!function_exists('smarty_pc_display_woocommerce_notices')) {
 
 if (!function_exists('smarty_pc_store_order_time')) {
     function smarty_pc_store_order_time($order_id) {
+        $current_time = current_time('timestamp');
+        //error_log('Storing order time for Order ID: ' . $order_id . ' | Time: ' . $current_time);
+
         if (!get_post_meta($order_id, '_order_time', true)) {
-            update_post_meta($order_id, '_order_time', current_time('timestamp'));
+            update_post_meta($order_id, '_order_time', $current_time);
         }
 
         if (!get_post_meta($order_id, '_is_completed', true)) {
@@ -1264,27 +1267,29 @@ if (!function_exists('smarty_pc_check_order_completion')) {
      * Function to check and update the is_completed field.
      */
     function smarty_pc_check_order_completion() {
+        // Use WC_Order_Query to query orders based on metadata
         $args = array(
-            'limit' => -1,
-            'status' => array('processing', 'on-hold', 'completed'), // Adjust statuses as needed
-            'meta_query' => array(
-                array(
-                    'key' => '_is_completed',
-                    'value' => 'no',
-                ),
-            ),
+            'limit'      => -1, // Get all matching orders
+            'status'     => array('processing', 'on-hold', 'completed'), // Adjust as needed
+            'meta_key'   => '_is_completed', // Meta key to search for
+            'meta_value' => 'no', // Only get orders where _is_completed is 'no'
         );
 
-        $orders = wc_get_orders($args);
+        // Create a new order query
+        $order_query = new WC_Order_Query($args);
+        $orders = $order_query->get_orders();
+
         $current_time = current_time('timestamp');
 
+        // Loop through the orders and update the _is_completed field
         foreach ($orders as $order) {
             $order_time = get_post_meta($order->get_id(), '_order_time', true);
 
             // Ensure $order_time is an integer
             $order_time = (int)$order_time;
 
-            if (($current_time - $order_time) > 300) { // 300 seconds = 5 minutes
+            // Check if 5 minutes (300 seconds) have passed since the order was placed
+            if (($current_time - $order_time) > 300) {
                 update_post_meta($order->get_id(), '_is_completed', 'yes');
             }
         }
