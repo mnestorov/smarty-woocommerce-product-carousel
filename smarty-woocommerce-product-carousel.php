@@ -1220,6 +1220,62 @@ if (!function_exists('smarty_pc_display_woocommerce_notices')) {
     add_action('woocommerce_before_thankyou', 'smarty_pc_display_woocommerce_notices', 20);
 }
 
+if (!function_exists('smarty_pc_add_completed_status_meta_box')) {
+    function smarty_pc_add_completed_status_meta_box() {
+        add_meta_box(
+            'smarty-pc-completed-status', // Meta box ID
+            __('Order Completed Status', 'smarty-product-carousel'), // Meta box title
+            'smarty_pc_render_completed_status_meta_box', // Callback function
+            'shop_order', // Post type
+            'side', // Context
+            'default' // Priority
+        );
+    }
+    add_action('add_meta_boxes', 'smarty_pc_add_completed_status_meta_box');
+}
+
+if (!function_exists('smarty_pc_render_completed_status_meta_box')) {
+    function smarty_pc_render_completed_status_meta_box($post) {
+        // Retrieve the current _is_completed value
+        $is_completed = get_post_meta($post->ID, '_is_completed', true);
+        
+        // Nonce field for security
+        wp_nonce_field('smarty_pc_save_completed_status_meta_box', 'smarty_pc_completed_status_nonce');
+        ?>
+        <p>
+            <label for="smarty_pc_is_completed">
+                <strong><?php echo __('Is Completed:', 'smarty-product-carousel'); ?></strong>
+            </label>
+            <select name="smarty_pc_is_completed" id="smarty_pc_is_completed" style="width: 100%;">
+                <option value="no" <?php selected($is_completed, 'no'); ?>><?php echo __('No', 'smarty-product-carousel'); ?></option>
+                <option value="yes" <?php selected($is_completed, 'yes'); ?>><?php echo __('Yes', 'smarty-product-carousel'); ?></option>
+            </select>
+        </p>
+        <?php
+    }
+}
+
+if (!function_exists('smarty_pc_save_completed_status')) {
+    function smarty_pc_save_completed_status($post_id) {
+        // Verify nonce
+        if (!isset($_POST['smarty_pc_completed_status_nonce']) || !wp_verify_nonce($_POST['smarty_pc_completed_status_nonce'], 'smarty_pc_save_completed_status_meta_box')) {
+            return;
+        }
+
+        // Check if the current user can edit orders
+        if (!current_user_can('edit_shop_order', $post_id)) {
+            return;
+        }
+
+        // Check if the _is_completed field is set
+        if (isset($_POST['smarty_pc_is_completed'])) {
+            $new_value = sanitize_text_field($_POST['smarty_pc_is_completed']);
+            update_post_meta($post_id, '_is_completed', $new_value);
+        }
+    }
+    add_action('save_post_shop_order', 'smarty_pc_save_completed_status');
+}
+
 if (!function_exists('smarty_pc_store_order_time')) {
     function smarty_pc_store_order_time($order_id) {
         $current_time = current_time('timestamp');
