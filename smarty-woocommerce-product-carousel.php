@@ -1,17 +1,17 @@
 <?php
 /**
- * Plugin Name: SM - WooCommerce Product Carousel
- * Plugin URI:  https://github.com/mnestorov/smarty-woocommerce-product-carousel
- * Description: A custom WooCommerce product carousel plugin.
- * Version:     1.0.0
- * Author:      Smarty Studio | Martin Nestorov
- * Author URI:  https://github.com/mnestorov
- * License:     GPL-2.0+
- * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain: smarty-product-carousel
- * WC requires at least: 3.5.0
- * WC tested up to: 9.0.2
- * Requires Plugins: woocommerce
+ * Plugin Name:             SM - WooCommerce Product Carousel
+ * Plugin URI:              https://github.com/mnestorov/smarty-woocommerce-product-carousel
+ * Description:             A custom WooCommerce product carousel plugin.
+ * Version:                 1.0.0
+ * Author:                  Smarty Studio | Martin Nestorov
+ * Author URI:              https://github.com/mnestorov
+ * License:                 GPL-2.0+
+ * License URI:             http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:             smarty-product-carousel
+ * WC requires at least:    3.5.0
+ * WC tested up to:         9.0.2
+ * Requires Plugins:        woocommerce
  * 
  * Usage: 
  *  - [smarty_pc_product_carousel ids="1,2,3" speed="500" autoplay="true" autoplay_speed="3000"]
@@ -1105,8 +1105,8 @@ if (!function_exists('smarty_pc_display_carousel_for_cod')) {
 
 if (!function_exists('smarty_pc_add_to_order')) {
     function smarty_pc_add_to_order() {
+        // Check required parameters
         if (!isset($_POST['product_id']) || !isset($_POST['source'])) {
-            wc_add_notice(__('Invalid request: Missing parameters', 'smarty-product-carousel'), 'error');
             wp_send_json_error(array('message' => __('Invalid request: Missing parameters', 'smarty-product-carousel')));
         }
 
@@ -1114,63 +1114,59 @@ if (!function_exists('smarty_pc_add_to_order')) {
         $order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0; // Default to 0 if not set
         $source = sanitize_text_field($_POST['source']);
 
+        // Validate parameters
         if ($product_id <= 0 || empty($source)) {
-            wc_add_notice(__('Invalid request: Invalid parameters', 'smarty-product-carousel'), 'error');
             wp_send_json_error(array('message' => __('Invalid request: Invalid parameters', 'smarty-product-carousel')));
         }
 
         if ($source === 'thankyou_page' && $order_id <= 0) {
-            wc_add_notice(__('Invalid request: Missing order_id for thankyou_page', 'smarty-product-carousel'), 'error');
             wp_send_json_error(array('message' => __('Invalid request: Missing order_id for thankyou_page', 'smarty-product-carousel')));
         }
 
         $order = wc_get_order($order_id);
         if ($source === 'thankyou_page' && !$order) {
-            wc_add_notice(__('Order not found.', 'smarty-product-carousel'), 'error');
             wp_send_json_error(array('message' => __('Order not found.', 'smarty-product-carousel')));
         }
 
-        $order_time = get_post_meta($order_id, '_order_time', true);
-        $current_time = current_time('timestamp');
-        $time_diff = $current_time - $order_time;
+        // Check time difference for "thankyou_page" source
+        if ($source === 'thankyou_page') {
+            $order_time = get_post_meta($order_id, '_order_time', true);
+            $current_time = current_time('timestamp');
+            $time_diff = $current_time - $order_time;
 
-        if ($source === 'thankyou_page' && $time_diff > 300) { // 300 seconds = 5 minutes
-            wc_add_notice(__('Time expired.', 'smarty-product-carousel'), 'error');
-            wp_send_json_error(array('message' => __('Time expired.', 'smarty-product-carousel')));
+            if ($time_diff > 300) { // 300 seconds = 5 minutes
+                wp_send_json_error(array('message' => __('Time expired.', 'smarty-product-carousel')));
+            }
         }
 
         $product = wc_get_product($product_id);
         if (!$product) {
-            wc_add_notice(__('Product not found.', 'smarty-product-carousel'), 'error');
             wp_send_json_error(array('message' => __('Product not found.', 'smarty-product-carousel')));
         }
 
-        if ($source === 'thankyou_page') {
+        if ($source === 'thankyou_page' && $order_id > 0) {
             // Add the product to the order
             $item_id = $order->add_product($product);
             if (!$item_id) {
-                wc_add_notice(__('Failed to add product to order.', 'smarty-product-carousel'), 'error');
                 wp_send_json_error(array('message' => __('Failed to add product to order.', 'smarty-product-carousel')));
             }
 
-            // Add the source as order item meta
-            wc_add_order_item_meta($item_id, '_source', $source);
+            // Add source to the item meta
+            wc_add_order_item_meta($item_id, '_source', $source, true);
 
             // Recalculate totals
             $order->calculate_totals();
 
-            // Send email with updated order details
-            smarty_pc_send_order_update_email($order);
+            // Send an update email
+            smarty_pc_send_order_update_email($order_id);
 
-            wc_add_notice(__('Product added successfully.', 'smarty-product-carousel'), 'success');
+            wp_send_json_success(array('message' => __('Product added successfully.', 'smarty-product-carousel')));
         } else {
-            // For 'checkout_page' and 'mini_cart', just add the product to the cart
+            // For 'checkout_page' and 'mini_cart', add the product to the cart
             WC()->cart->add_to_cart($product_id);
             WC()->session->set('_source_' . $product_id, $source); // Store source in session
-            wc_add_notice(__('Product added to cart successfully.', 'smarty-product-carousel'), 'success');
+            wp_send_json_success(array('message' => __('Product added to cart successfully.', 'smarty-product-carousel')));
         }
-
-        wp_send_json_success(array('message' => __('Product added successfully.', 'smarty-product-carousel')));
     }
     add_action('wp_ajax_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
     add_action('wp_ajax_nopriv_smarty_pc_add_to_order', 'smarty_pc_add_to_order');
@@ -1185,8 +1181,12 @@ if (!function_exists('smarty_pc_send_order_update_email')) {
 
         // Ensure the order exists
         if (!$order) {
+            error_log("Order not found for ID: {$order_id}");
             return;
         }
+
+        // Log to confirm function is called
+        error_log("Triggering email for Order ID: {$order_id}");
 
         // Get WooCommerce mailer
         $mailer = WC()->mailer();
@@ -1194,21 +1194,16 @@ if (!function_exists('smarty_pc_send_order_update_email')) {
 
         // Ensure the email exists
         if (!isset($emails['WC_Email_Customer_Processing_Order'])) {
+            error_log("Processing order email is not set up.");
             return;
         }
-
-        // Customer email
-        $email_recipient = $order->get_billing_email();
 
         // Trigger the email
         $emails['WC_Email_Customer_Processing_Order']->trigger($order_id);
 
-        // Optionally, you can log or debug email sending
-        //error_log('Order update email sent to ' . $email_recipient);
+        // Log successful email trigger
+        error_log("Email triggered successfully for Order ID: {$order_id}");
     }
-
-    // Hook the email function to your order update process
-    add_action('woocommerce_order_status_changed', 'smarty_pc_send_order_update_email');
 }
 
 if (!function_exists('smarty_pc_display_woocommerce_notices')) {
