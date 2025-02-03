@@ -4,7 +4,7 @@
  * Plugin URI:              https://github.com/mnestorov/smarty-woocommerce-product-carousel
  * Description:             A custom WooCommerce product carousel plugin.
  * Version:                 1.0.0
- * Author:                  Smarty Studio | Martin Nestorov
+ * Author:                  Martin Nestorov
  * Author URI:              https://github.com/mnestorov
  * License:                 GPL-2.0+
  * License URI:             http://www.gnu.org/licenses/gpl-2.0.txt
