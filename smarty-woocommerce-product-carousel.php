@@ -899,41 +899,40 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
 
         $carousel_html .= "<script>
             jQuery(document).ready(function($) {
-                $('#smarty-pc-woo-carousel').slick({
-                    speed: " . intval($speed) . ",
-                    autoplay: {$autoplay},
-                    autoplaySpeed: " . intval($autoplay_speed) . ",
-                    slidesToShow: " . $slides_to_show . ",
-                    slidesToScroll: " . intval($options['smarty_pc_slides_to_scroll']) . ",
-                    infinite: {$infinite},
-                    adaptiveHeight: false,
-                    arrows: {$display_arrows},
-                    dots: {$display_dots},
-                    responsive: [
-                        {
-                            breakpoint: 1024,
-                            settings: {
-                                slidesToShow: 3,
-                                slidesToScroll: 3,
-                                infinite: true,
-                                dots: true
-                            }
-                        },
-                        {
-                            breakpoint: 600,
-                            settings: {
-                                slidesToShow: 2,
-                                slidesToScroll: 2
-                            }
-                        },
-                        {
-                            breakpoint: 480,
-                            settings: {
-                                slidesToShow: 1,
-                                slidesToScroll: 1
-                            }
+                function initSlickCarousel() {
+                    $('#smarty-pc-woo-carousel').not('.slick-initialized').slick({
+                        speed: " . intval($speed) . ",
+                        autoplay: {$autoplay},
+                        autoplaySpeed: " . intval($autoplay_speed) . ",
+                        slidesToShow: " . $slides_to_show . ",
+                        slidesToScroll: " . intval($options['smarty_pc_slides_to_scroll']) . ",
+                        infinite: {$infinite},
+                        adaptiveHeight: true,
+                        arrows: {$display_arrows},
+                        dots: {$display_dots},
+                        responsive: [
+                            { breakpoint: 1024, settings: { slidesToShow: 3, slidesToScroll: 3 } },
+                            { breakpoint: 600, settings: { slidesToShow: 2, slidesToScroll: 2 } },
+                            { breakpoint: 480, settings: { slidesToShow: 1, slidesToScroll: 1 } }
+                        ]
+                    });
+                }
+
+                // Initialize the carousel on load
+                initSlickCarousel();
+
+                // Reinitialize after cart updates
+                function refreshCarousel() {
+                    setTimeout(function() {
+                        if ($('#smarty-pc-woo-carousel').hasClass('slick-initialized')) {
+                            $('#smarty-pc-woo-carousel').slick('unslick');
                         }
-                    ]
+                        initSlickCarousel();
+                    }, 300);
+                }
+
+                $(document.body).on('added_to_cart removed_from_cart updated_wc_div', function() {
+                    refreshCarousel();
                 });
 
                 $(document).on('click', '#smarty-pc-woo-carousel a.add_to_cart_button', function(e) {
