@@ -55,6 +55,144 @@ To display the product carousel, use the shortcode `[smarty_pc_product_carousel]
 [smarty_pc_product_carousel ids="1,2,3" speed="500" autoplay="true" autoplay_speed="3000" slides_to_show="1"]
 ```
 
+### Example CSS styling
+
+```css
+/* ===========================
+   1) Carousel Container & Title
+   =========================== */
+#smarty-pc-woo-carousel.smarty-pc-carousel {
+  text-align: center;
+}
+#smarty-pc-woo-carousel.smarty-pc-carousel.slick-initialized.slick-slider {
+  padding: 10px;
+}
+.smarty-pc-carousel-title {
+  text-align: center;
+  font-size: 100% !important;
+}
+
+/* ===========================
+   2) Text Label & Discount Label
+   =========================== */
+#smarty-pc-woo-carousel .text-label {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #FFD700;
+  color: #000;
+  padding: 2px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+#smarty-pc-woo-carousel.smarty-pc-carousel .text-label {
+  /* Overridden when slick initializes? */
+  background-color: #FFD700 !important;
+  color: #000;
+  top: 0;
+  left: auto !important;
+  right: -25px !important;
+}
+#smarty-pc-woo-carousel .discount-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgb(210,184,133);
+  border-radius: 50px;
+  width: auto;
+  color: #ffffff;
+  padding: 10px 5px;
+  font-size: 14px;
+  font-weight: bold;
+}
+#smarty-pc-woo-carousel .discount-label s {
+  color: #bbeebb;
+}
+
+/* ===========================
+   3) Product Container & Titles
+   =========================== */
+#smarty-pc-woo-carousel .product {
+  position: relative;
+}
+#smarty-pc-woo-carousel.smarty-pc-carousel .product h2 {
+  font-size: 16px;
+  text-wrap: balance;
+  margin-bottom: 5px;
+}
+#smarty-pc-woo-carousel.smarty-pc-carousel .added_to_cart.wc-forward {
+  display: none;
+}
+
+/* ===========================
+   4) Price & Savings Styles
+   =========================== */
+/* Specific colors for old/new prices */
+#smarty-pc-woo-carousel span.price small del span.woocommerce-Price-amount.amount {
+  color: #dd5444 !important;
+}
+#smarty-pc-woo-carousel span.price small ins span.woocommerce-Price-amount.amount {
+  color: #709900 !important;
+}
+/* Font sizing for amounts, del, and save info */
+#smarty-pc-woo-carousel.smarty-pc-carousel .price .woocommerce-Price-amount.amount {
+  font-size: 16px;
+}
+#smarty-pc-woo-carousel.smarty-pc-carousel .price del {
+  font-size: 18px;
+}
+#smarty-pc-woo-carousel.smarty-pc-carousel .save-info {
+  font-size: 14px;
+  margin-bottom: 0.25rem;
+}
+
+/* ===========================
+   5) Slick Prev/Next Buttons
+   =========================== */
+#smarty-pc-woo-carousel.smarty-pc-carousel .slick-prev,
+#smarty-pc-woo-carousel.smarty-pc-carousel .slick-next {
+  font-size: 0;
+  line-height: 0;
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+  background: transparent;
+  border: none;
+  z-index: 25;
+}
+#smarty-pc-woo-carousel.smarty-pc-carousel .slick-prev {
+  left: 25px;
+  z-index: 1;
+}
+#smarty-pc-woo-carousel.smarty-pc-carousel .slick-next {
+  right: 25px;
+  z-index: 1;
+}
+
+/* ===========================
+   6) Buttons
+   =========================== */
+#smarty-pc-woo-carousel.smarty-pc-carousel .button {
+  background-color: #0b100d;
+  color: #fff;
+  border-radius: 5px;
+}
+#smarty-pc-woo-carousel.smarty-pc-carousel .button:hover {
+  background-color: #d2b885;
+  color: #fff;
+}
+
+/* ===========================
+   7) Product Images in Slides
+   =========================== */
+.slick-slide img {
+  width: 150px;
+  margin: 0 auto;
+}
+```
+
 ### Customizing Texts
 
 Navigate to the plugin's settings under the WooCommerce section in your WordPress admin. Here you can find options to customize the texts for "Save", "Add To Cart", and "Exclusive".
