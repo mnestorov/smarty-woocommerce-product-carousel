@@ -3,7 +3,7 @@
  * Plugin Name:          SM - WooCommerce Product Carousel
  * Plugin URI:           https://github.com/mnestorov/smarty-woocommerce-product-carousel
  * Description:          A custom WooCommerce product carousel plugin.
- * Version:              1.0.1
+ * Version:              1.0.2
  * Author:               Martin Nestorov
  * Author URI:           https://github.com/mnestorov
  * License:              GPL-2.0+
@@ -585,17 +585,26 @@ if (!function_exists('smarty_pc_print_custom_css')) {
         }
 
         // Additional custom CSS styles specific to the carousel
-        ?>
 
-        #smarty-pc-woo-carousel.smarty-pc-carousel .product { 
-			padding: <?php echo intval($options['smarty_pc_slide_padding'] ?? '0'); ?>px; 
-		}
+        echo "
+            #smarty-pc-woo-carousel.smarty-pc-carousel .product { 
+                padding: " . intval($options['smarty_pc_slide_padding'] ?? '0') . "px; 
+            }
+            #smarty-pc-woo-carousel.smarty-pc-carousel button[disabled], input[disabled] {
+                opacity: 0.6 !important;
+                cursor: not-allowed !important;
+            }
+            #smarty-pc-woo-carousel.smarty-pc-carousel button[disabled]:hover {
+                background: #0b100d !important;
+                opacity: 0.6 !important;
+            }
+        ";
 
-        <?php
         // Echo additional saved custom CSS if set
         if (!empty($options['custom_css'])) {
             echo esc_attr($options['custom_css']) . "\n";
         }
+
         echo "</style>\n";
     }
     add_action('wp_head', 'smarty_pc_print_custom_css');
@@ -730,23 +739,27 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
 
         $options = get_option('smarty_pc_carousel_options');
         $custom_title = $options['smarty_pc_custom_title'] ?? '';
-        $plugin_slides_to_show = isset($options['smarty_pc_slides_to_show']) && is_numeric($options['smarty_pc_slides_to_show']) ? intval($options['smarty_pc_slides_to_show']) : 3;
+        $plugin_slides_to_show = isset($options['smarty_pc_slides_to_show']) && is_numeric($options['smarty_pc_slides_to_show']) 
+            ? intval($options['smarty_pc_slides_to_show']) 
+            : 3;
         
+        // Shortcode Attributes
         $attributes = shortcode_atts(
             array(
-                'slides_to_show' => $plugin_slides_to_show, // Use the plugin setting as the default value
-                'source'         => 'checkout_page', // Default value
+                'slides_to_show' => $plugin_slides_to_show, // Use the plugin setting as the default
+                'source'         => 'checkout_page',         // Default value
                 'order_id'       => 0,
             ), 
             $atts, 
             'smarty_pc_product_carousel'
         );
 
-        $source = $attributes['source']; // Extract the source attribute
-        $order_id = intval($attributes['order_id']);
+        // Basic variables
+        $source     = $attributes['source'];
+        $order_id   = intval($attributes['order_id']);
         $order_product_ids = array();
 
-         // Handle different sources
+        // Handle different sources
         if ($source === 'thankyou_page' && $order_id > 0) {
             $order = wc_get_order($order_id);
             if ($order) {
@@ -759,199 +772,223 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                 return ''; // Prevent errors when the cart isn't ready
             }
 
-            // Logic for checkout page and mini cart upsells
+            // For checkout page and mini cart upsells
             foreach (WC()->cart->get_cart() as $cart_item) {
                 $order_product_ids[] = $cart_item['product_id'];
             }
         }
 
-        // IDs from settings
+        // IDs from plugin settings
         $saved_ids = isset($options['products']) ? $options['products'] : [];
-        
-        $display_arrows = isset($options['smarty_pc_display_arrows']) && $options['smarty_pc_display_arrows'] ? 'true' : 'false';
-        $saved_arrow_color = isset($options['smarty_pc_arrow_color']) ? $options['smarty_pc_arrow_color'] : '';
-        
-        $display_dots = isset($options['smarty_pc_display_dots']) && $options['smarty_pc_display_dots'] ? 'true' : 'false';
-        $saved_dot_color = isset($options['smarty_pc_dot_color']) ? $options['smarty_pc_dot_color'] : '';
-        $saved_slide_padding = isset($options['smarty_pc_slide_padding']) ? $options['smarty_pc_slide_padding'] : '';
-        
-        $slides_to_show = $attributes['slides_to_show'];
-        $slides_to_scroll = isset($options['smarty_pc_slides_to_scroll']) ? $options['smarty_pc_slides_to_scroll'] : '1';
-       
-        $speed = isset($options['smarty_pc_speed']) ? $options['smarty_pc_speed'] : '300';
-        $autoplay = isset($options['smarty_pc_autoplay_indicator']) && $options['smarty_pc_autoplay_indicator'] ? 'true' : 'false';
-        $autoplay_speed = isset($options['smarty_pc_autoplay_speed']) ? $options['smarty_pc_autoplay_speed'] : '3000';
-        
-        $infinite = isset($options['smarty_pc_infinite']) && $options['smarty_pc_infinite'] ? 'true' : 'false';
-        
-        $save_text = $options['smarty_pc_save_text'] ?? 'Save';
-        $add_to_cart_text = $options['smarty_pc_add_to_cart_text'];
-        $label_text = $options['smarty_pc_label_text'] ?? 'Exclusive';
 
-        // Get product names from cart
-        $cart_product_names = smarty_pc_get_cart_product_names();
+        // Grab carousel style/behavior settings
+        $display_arrows       = isset($options['smarty_pc_display_arrows']) && $options['smarty_pc_display_arrows'] ? 'true' : 'false';
+        $saved_arrow_color    = isset($options['smarty_pc_arrow_color']) ? $options['smarty_pc_arrow_color'] : '';
+        
+        $display_dots         = isset($options['smarty_pc_display_dots']) && $options['smarty_pc_display_dots'] ? 'true' : 'false';
+        $saved_dot_color      = isset($options['smarty_pc_dot_color']) ? $options['smarty_pc_dot_color'] : '';
+        $saved_slide_padding  = isset($options['smarty_pc_slide_padding']) ? $options['smarty_pc_slide_padding'] : '';
+        
+        $slides_to_show       = $attributes['slides_to_show'];
+        $slides_to_scroll     = isset($options['smarty_pc_slides_to_scroll']) ? $options['smarty_pc_slides_to_scroll'] : '1';
+        $speed                = isset($options['smarty_pc_speed']) ? $options['smarty_pc_speed'] : '300';
+        $autoplay             = isset($options['smarty_pc_autoplay_indicator']) && $options['smarty_pc_autoplay_indicator'] ? 'true' : 'false';
+        $autoplay_speed       = isset($options['smarty_pc_autoplay_speed']) ? $options['smarty_pc_autoplay_speed'] : '3000';
+        $infinite             = isset($options['smarty_pc_infinite']) && $options['smarty_pc_infinite'] ? 'true' : 'false';
 
-        // Retrieve IDs of products set in the carousel settings
-        $carousel_ids = $options['products'] ?? [];
+        $save_text            = $options['smarty_pc_save_text'] ?? 'Save';
+        $add_to_cart_text     = $options['smarty_pc_add_to_cart_text'];
+        $label_text           = $options['smarty_pc_label_text'] ?? 'Exclusive';
+        
+        $old_discount         = isset($options['smarty_pc_discount']) ? $options['smarty_pc_discount'] : '10';
 
-        // Build a list of IDs to exclude based on cart item names
-        $excluded_ids = [];
-        foreach ($carousel_ids as $id) {
-            $product = wc_get_product($id);
-            if ($product) {
-                foreach ($cart_product_names as $cart_name) {
-                    if (stripos($product->get_name(), $cart_name) !== false || stripos($cart_name, $product->get_name()) !== false) {
-                        $excluded_ids[] = $id;
-                        break;
-                    }
-                }
-            }
-        }
+        // ----------------------------------------------------------------
+        // Do NOT exclude any product based on cart items:
+        // We simply take all plugin-selected IDs and show them in the carousel.
+        // ----------------------------------------------------------------
+        $carousel_ids = $saved_ids;
 
-        $included_ids = array_diff($carousel_ids, $excluded_ids);
-
-        // Prepare query arguments excluding cart items
+        // Prepare the query args with *all* carousel IDs
         $query_args = array(
-            'limit'          => -1,
-            'post_type'      => 'product',
-            'orderby'        => 'menu_order',
-            'order'          => 'ASC',
-            'status'         => 'publish',
-            'include'        => $included_ids,
+            'limit'     => -1,
+            'post_type' => 'product',
+            'orderby'   => 'menu_order',
+            'order'     => 'ASC',
+            'status'    => 'publish',
+            'include'   => $carousel_ids,
         );
 
-        // Query products
+        // Query the products
         $query = new WC_Product_Query($query_args);
         $products = $query->get_products();
 
-        // Start building carousel HTML
-        $carousel_html = '';  // Start with an empty string.
-        
-        // Add custom title if it exists
+        // ----------------------------------------------------------------
+        // Get a list of all product IDs currently in the cart,
+        // so we can disable the Add to Cart button for those items.
+        // ----------------------------------------------------------------
+        $cart_product_ids = array_map(
+            function($cart_item) { return $cart_item['product_id']; },
+            WC()->cart->get_cart()
+        );
+
+        // Build the carousel HTML
+        $carousel_html = '';
+
+        // Add custom title if set
         if (!empty($custom_title)) {
             $carousel_html .= '<h5 class="smarty-pc-carousel-title">' . esc_html($custom_title) . '</h5>';
         }
 
-        // Start the carousel div after adding the title
+        // Carousel container
         $carousel_html .= '<div id="smarty-pc-woo-carousel" class="smarty-pc-carousel">';
 
         // Flag to identify the first product
         $is_first_product = true;
 
+        // Loop through the found products
         foreach ($products as $product) {
             $carousel_html .= '<div class="product">';
-            
+
             $max_discount = 0;
             $max_amount_saved = 0;
-            $old_discount = isset($options['smarty_pc_discount']) ? $options['smarty_pc_discount'] : '10';
-        
-            // Label for the first product
-            if ($is_first_product) {
-                if (!empty($label_text)) {
-                    $carousel_html .= "<div class='text-label'>{$label_text}</div>";
-                }
-                $is_first_product = false; // Reset flag so it's only applied to the first product
+
+            // If it's the very first product in the list, show the label
+            if ($is_first_product && !empty($label_text)) {
+                $carousel_html .= '<div class="text-label">' . esc_html($label_text) . '</div>';
+                $is_first_product = false;
             }
-        
-            // Initialize price variables
+
+            // Calculate discount if on sale
             $regular_price = 0;
-            $sale_price = 0;
-            $is_on_sale = false;
-        
+            $sale_price    = 0;
+            $is_on_sale    = false;
+
             if ($product->is_type('variable')) {
-                $variations = $product->get_available_variations();
+                $variations       = $product->get_available_variations();
                 $variation_prices = [];
         
                 foreach ($variations as $variation) {
                     $variation_obj = wc_get_product($variation['variation_id']);
                     $variation_regular_price = floatval($variation_obj->get_regular_price());
-                    $variation_sale_price = floatval($variation_obj->get_sale_price());
+                    $variation_sale_price    = floatval($variation_obj->get_sale_price());
         
                     if ($variation_obj->is_on_sale() && $variation_regular_price > 0 && $variation_sale_price > 0) {
                         $variation_prices[] = [
-                            'regular' => $variation_regular_price,
-                            'sale' => $variation_sale_price,
+                            'regular'  => $variation_regular_price,
+                            'sale'     => $variation_sale_price,
                             'discount' => round((($variation_regular_price - $variation_sale_price) / $variation_regular_price) * 100)
                         ];
                     }
                 }
         
                 if (!empty($variation_prices)) {
-                    // Find the maximum discount
-                    usort($variation_prices, function($a, $b) {
+                    // Sort by discount descending
+                    usort($variation_prices, function($a, $b){
                         return $b['discount'] <=> $a['discount'];
                     });
-                    $regular_price = $variation_prices[0]['regular'];
-                    $sale_price = $variation_prices[0]['sale'];
-                    $max_discount = $variation_prices[0]['discount'];
+                    $regular_price    = $variation_prices[0]['regular'];
+                    $sale_price       = $variation_prices[0]['sale'];
+                    $max_discount     = $variation_prices[0]['discount'];
                     $max_amount_saved = $regular_price - $sale_price;
-                    $is_on_sale = true;
+                    $is_on_sale       = true;
                 }
-            } else if ($product->is_on_sale()) {
+            } 
+            else if ($product->is_on_sale()) {
                 $regular_price = floatval($product->get_regular_price());
-                $sale_price = floatval($product->get_sale_price());
-        
+                $sale_price    = floatval($product->get_sale_price());
                 if ($regular_price > 0 && $sale_price > 0) {
-                    $max_discount = round((($regular_price - $sale_price) / $regular_price) * 100);
+                    $max_discount     = round((($regular_price - $sale_price) / $regular_price) * 100);
                     $max_amount_saved = $regular_price - $sale_price;
-                    $is_on_sale = true;
+                    $is_on_sale       = true;
                 }
             }
-        
-            // Adjust the logic for displaying the discount label
+
+            // Discount label logic
             if ($max_discount > 0) {
                 if ($old_discount != 0) {
-                    // Show the discount including the old discount adjustment
+                    // Show actual discount + "old" discount
                     $carousel_html .= '<div class="discount-label"><s>-' . ($max_discount - $old_discount) . '%</s> -' . $max_discount . '%</div>';
                 } else {
-                    // Old discount is disabled, show only the actual discount
+                    // Show only the actual discount
                     $carousel_html .= '<div class="discount-label">-' . $max_discount . '%</div>';
                 }
             }
-        
-            // Add product image and name
-            $carousel_html .= '<img src="' . wp_get_attachment_url($product->get_image_id()) . '" alt="' . $product->get_name() . '" title="' . $product->get_name() . '">';
-            $carousel_html .= '<h2>' . $product->get_name() . '</h2>';
-        
-            // Price HTML including old price if on sale
-            if ($is_on_sale) {
+
+            // Product image & title
+            $carousel_html .= '<img src="' . esc_url(wp_get_attachment_url($product->get_image_id())) . '" ' . 'alt="' . esc_attr($product->get_name()) . '" ' . 'title="' . esc_attr($product->get_name()) . '">';
+            $carousel_html .= '<h2>' . esc_html($product->get_name()) . '</h2>';
+
+            // Display price
+            if ($is_on_sale && $regular_price && $sale_price) {
                 $regular_price_html = wc_price($regular_price);
-                $sale_price_html = wc_price($sale_price);
-                $price_html = '<span class="price"><small><del aria-hidden="true">' . $regular_price_html . '</del>&nbsp;<ins aria-hidden="true">' . $sale_price_html . '</ins></small></span>';
+                $sale_price_html    = wc_price($sale_price);
+                $price_html         = '<span class="price"><small><del aria-hidden="true">' . $regular_price_html . '</del>&nbsp;<ins aria-hidden="true">' . $sale_price_html . '</ins></small></span>';
             } else {
                 $price_html = '<span class="price"><small>' . $product->get_price_html() . '</small></span>';
             }
-            $carousel_html .= $price_html;
-        
+
+            $carousel_html .= wp_kses_post($price_html);
+
+            // "Save" info
             if ($max_discount > 0) {
                 $saved_formatted = wc_price($max_amount_saved);
-                $carousel_html .= "<p class='save-info'>{$save_text} {$max_discount}% ($saved_formatted)</p>";
+                $carousel_html .= "<p class='save-info'>" . esc_html($save_text) . " {$max_discount}% (" . wp_kses_post($saved_formatted) . ")</p>";
             }
-        
-            // Add to Cart button
-            if ($product->is_type('simple')) {
-                $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&source=' . $source;
-                $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '" data-source="' . esc_attr($source) . '">' . $add_to_cart_text . '</a>';
-            } elseif ($product->is_type('variable')) {
-                $available_variations = $product->get_available_variations();
-                $first_variation_id = $available_variations[0]['variation_id'] ?? 0;
-                if ($first_variation_id > 0) {
-                    $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&variation_id=' . $first_variation_id . '&source=' . $source;
-                    foreach ($available_variations[0]['attributes'] as $attr_key => $attr_value) {
-                        $add_to_cart_url .= '&' . $attr_key . '=' . $attr_value;
+
+            // ----------------------------------------------------------------
+            // If the product is already in the cart, 
+            // show a disabled button instead of removing the product.
+            // ----------------------------------------------------------------
+            $in_cart = in_array($product->get_id(), $cart_product_ids, true);
+
+            if ($in_cart) {
+                // Show a disabled button (or any variant of "In Cart")
+                $carousel_html .= '<button class="button add_to_cart_button disabled" disabled="disabled">'
+                                . esc_html__('In Cart', 'smarty-product-carousel')
+                                . '</button>';
+            } else {
+                // Normal Add to Cart button
+                if ($product->is_type('simple')) {
+                    $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&source=' . $source;
+                    $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) 
+                                    . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" '
+                                    . 'data-product_id="' . esc_attr($product->get_id()) . '" '
+                                    . 'data-source="' . esc_attr($source) . '">'
+                                    . esc_html($add_to_cart_text) 
+                                    . '</a>';
+                } elseif ($product->is_type('variable')) {
+                    $available_variations = $product->get_available_variations();
+                    $first_variation_id   = $available_variations[0]['variation_id'] ?? 0;
+                    if ($first_variation_id > 0) {
+                        $add_to_cart_url = '?add-to-cart=' . $product->get_id() 
+                                         . '&variation_id=' . $first_variation_id 
+                                         . '&source=' . $source;
+                        foreach ($available_variations[0]['attributes'] as $attr_key => $attr_value) {
+                            $add_to_cart_url .= '&' . $attr_key . '=' . $attr_value;
+                        }
+                        $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) 
+                                        . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" '
+                                        . 'data-product_id="' . esc_attr($product->get_id()) . '" '
+                                        . 'data-source="' . esc_attr($source) . '" '
+                                        . 'data-variation_id="' . esc_attr($first_variation_id) . '">'
+                                        . esc_html($add_to_cart_text) 
+                                        . '</a>';
+                    } else {
+                        $product_url = get_permalink($product->get_id());
+                        $carousel_html .= '<a href="' . esc_url($product_url) . '?source=upsell' . '" '
+                                        . 'id="smartyCarousel" class="button">'
+                                        . esc_html__('Select Options', 'smarty-product-carousel')
+                                        . '</a>';
                     }
-                    $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" data-product_id="' . $product->get_id() . '" data-source="' . esc_attr($source) . '" data-variation_id="' . $first_variation_id . '">' . $add_to_cart_text . '</a>';
-                } else {
-                    $product_url = get_permalink($product->get_id());
-                    $carousel_html .= '<a href="' . esc_url($product_url) . '?source=upsell' . '" id="smartyCarousel" class="button">Select Options</a>';
                 }
             }
-        
-            $carousel_html .= '</div>';
-        }               
-       
-        $carousel_html .= '</div>';
 
+            $carousel_html .= '</div>'; // End .product
+        }
+
+        $carousel_html .= '</div>'; // End #smarty-pc-woo-carousel
+
+        // Initialize Slick carousel
         $carousel_html .= "<script>
             jQuery(document).ready(function($) {
                 function initSlickCarousel() {
@@ -959,21 +996,20 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                         speed: " . intval($speed) . ",
                         autoplay: {$autoplay},
                         autoplaySpeed: " . intval($autoplay_speed) . ",
-                        slidesToShow: " . $slides_to_show . ",
-                        slidesToScroll: " . intval($options['smarty_pc_slides_to_scroll']) . ",
+                        slidesToShow: " . intval($slides_to_show) . ",
+                        slidesToScroll: " . intval($slides_to_scroll) . ",
                         infinite: {$infinite},
                         adaptiveHeight: true,
                         arrows: {$display_arrows},
                         dots: {$display_dots},
                         responsive: [
                             { breakpoint: 1024, settings: { slidesToShow: 3, slidesToScroll: 3 } },
-                            { breakpoint: 600, settings: { slidesToShow: 2, slidesToScroll: 2 } },
-                            { breakpoint: 480, settings: { slidesToShow: 1, slidesToScroll: 1 } }
+                            { breakpoint: 600,  settings: { slidesToShow: 2, slidesToScroll: 2 } },
+                            { breakpoint: 480,  settings: { slidesToShow: 1, slidesToScroll: 1 } }
                         ]
                     });
                 }
 
-                // Initialize the carousel on load
                 initSlickCarousel();
 
                 // Reinitialize after cart updates
@@ -994,28 +1030,11 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                     e.preventDefault();
                     var product_id = $(this).data('product_id');
                     var source = $(this).data('source');
-                    var order_id = $('#order_id').val() || 0; // Default to 0 if not found
+                    var order_id = $('#order_id').val() || 0;
 
-                    //console.log('Product ID:', product_id);
-                    //console.log('Source:', source);
-                    //console.log('Order ID:', order_id);
-                    
                     if (!product_id || !source) {
-                        //alert('Missing product_id or source.');
-                        //console.log('Missing parameters:', {
-                            //product_id: product_id,
-                            //source: source,
-                            //order_id: order_id
-                        //});
                         return;
                     }
-
-                    //console.log('Sending AJAX request with:', {
-                        //action: 'smarty_pc_add_to_order',
-                        //product_id: product_id,
-                        //order_id: order_id,
-                        //source: source
-                    //});
 
                     $.ajax({
                         url: '" . admin_url('admin-ajax.php') . "',
@@ -1028,26 +1047,17 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                         },
                         success: function(response) {
                             if (response.success) {
-                                //alert('Product added to order');
-                                location.reload(); // Reload the page after successful addition
+                                location.reload();
                             } else {
                                 var errorMessage = response.data.message || 'Unknown error occurred.';
-                                alert('Error: ' + errorMessage); // Display the error message
-                                //console.log('Error response:', response);
-
+                                alert('Error: ' + errorMessage);
                                 if (errorMessage === 'Time expired.') {
-                                    // Hide add to cart buttons if time expired
                                     $('#smarty-pc-woo-carousel a.add_to_cart_button').hide();
                                 }
                             }
                         },
                         error: function(xhr, status, error) {
-                            //alert('AJAX request failed: ' + error);
-                            //console.log('AJAX request failed:', {
-                                //xhr: xhr,
-                                //status: status,
-                                //error: error
-                            //});
+                            // console.log('AJAX request failed:', error);
                         }
                     });
                 });

@@ -1,0 +1,197 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: SM - WooCommerce Product Carousel\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-02-18 09:12+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.11; wp-6.6.1\n"
+"X-Domain: smarty-product-carousel"
+
+#. Description of the plugin
+msgid "A custom WooCommerce product carousel plugin."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:366
+msgid "Add a number to visualize the old percentage discount."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:531
+msgid "Add custom CSS for the carousel here."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:353
+msgid ""
+"Customize the appearance and behavior of the WooCommerce products carousel."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:359
+msgid ""
+"Customize the appearance of the products carousel with your own CSS. Add "
+"styles that will be applied directly to the carousel, giving you the "
+"flexibility to tailor its look and feel to match your site's design. Whether "
+"you need to adjust the padding, colors, or any other aspect, the Custom CSS "
+"field is your canvas."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:373
+msgid "Customize the texts displayed in the product carousel."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:384
+msgid "Display arrows on the carousel."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:404
+msgid "Display dots under the carousel."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:497
+msgid "Enter a custom title for your product carousel."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1255
+msgid "Every Five Minutes"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:393 
+#: smarty-woocommerce-product-carousel.php:413
+msgid "Example: #cc0000"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1152 
+#: smarty-woocommerce-product-carousel.php:1153
+msgid "Failed to add product to order."
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://smartystudio.net"
+msgstr ""
+
+#. URI of the plugin
+msgid "https://smartystudio.net/smarty-product-carousel"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1118 
+#: smarty-woocommerce-product-carousel.php:1119
+msgid "Invalid request: Invalid parameters"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1123 
+#: smarty-woocommerce-product-carousel.php:1124
+msgid "Invalid request: Missing order_id for thankyou_page"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1109 
+#: smarty-woocommerce-product-carousel.php:1110
+msgid "Invalid request: Missing parameters"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1129 
+#: smarty-woocommerce-product-carousel.php:1130
+msgid "Order not found."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1165 
+#: smarty-woocommerce-product-carousel.php:1173
+msgid "Product added successfully."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1170
+msgid "Product added to cart successfully."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1144 
+#: smarty-woocommerce-product-carousel.php:1145
+msgid "Product not found."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:111
+msgid "Products"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:103
+msgid "Products Carousel | Settings"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:116
+msgid "Select Products"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:112
+msgid "Select products to add to the carousel."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:131
+msgid "Select products to display in the carousel."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:469
+msgid "Set the autoplay speed in milliseconds."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:451
+msgid "Set the default scrolling speed in milliseconds."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:433
+msgid "Set the default slides to scroll."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:423
+msgid "Set the default slides to show."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:486
+msgid "Set the old products discount."
+msgstr ""
+
+#. Name of the plugin
+msgid "SM - WooCommerce Product Carousel"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:37
+msgid ""
+"SM - WooCommerce Product Carousel requires WooCommerce to be installed and "
+"active."
+msgstr ""
+
+#. Author of the plugin
+msgid "Smarty Studio | Martin Nestorov"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1305
+msgid "Source"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1138 
+#: smarty-woocommerce-product-carousel.php:1139
+msgid "Time expired."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1084
+msgid "Time is expired:"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1099
+msgid "You can add additional products to your order until:"
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1084
+msgid "You can't add additional products to your order."
+msgstr ""
+
+#: smarty-woocommerce-product-carousel.php:1055
+msgid "You cannot have only upsell products in the cart."
+msgstr ""
+
+msgid "In Cart"
+msgstr ""

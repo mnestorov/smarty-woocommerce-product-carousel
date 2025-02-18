@@ -10,3 +10,7 @@
     - Ensures that WooCommerce is fully initialized before running.
     - If the cart is empty, it returns nothing instead of causing errors.
 - Plugin settings page enhancement
+
+### 1.0.2 (2025.02.18)
+- Removed the "Exclude" product logic from carousel, when the product is added to the cart
+- Instead of removing the product from view, we simply show a disabled "In Cart" button
