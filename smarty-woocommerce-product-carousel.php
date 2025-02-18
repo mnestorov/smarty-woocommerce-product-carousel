@@ -1,17 +1,17 @@
 <?php
 /**
- * Plugin Name:             SM - WooCommerce Product Carousel
- * Plugin URI:              https://github.com/mnestorov/smarty-woocommerce-product-carousel
- * Description:             A custom WooCommerce product carousel plugin.
- * Version:                 1.0.0
- * Author:                  Martin Nestorov
- * Author URI:              https://github.com/mnestorov
- * License:                 GPL-2.0+
- * License URI:             http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:             smarty-product-carousel
- * WC requires at least:    3.5.0
- * WC tested up to:         9.0.2
- * Requires Plugins:        woocommerce
+ * Plugin Name:          SM - WooCommerce Product Carousel
+ * Plugin URI:           https://github.com/mnestorov/smarty-woocommerce-product-carousel
+ * Description:          A custom WooCommerce product carousel plugin.
+ * Version:              1.0.1
+ * Author:               Martin Nestorov
+ * Author URI:           https://github.com/mnestorov
+ * License:              GPL-2.0+
+ * License URI:          http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:          smarty-product-carousel
+ * WC requires at least: 3.5.0
+ * WC tested up to:      9.0.2
+ * Requires Plugins:     woocommerce
  * 
  * Usage: 
  *  - [smarty_pc_product_carousel ids="1,2,3" speed="500" autoplay="true" autoplay_speed="3000"]
@@ -54,11 +54,17 @@ if (!function_exists('smarty_pc_enqueue_admin_scripts')) {
     function smarty_pc_enqueue_admin_scripts($hook) {
         wp_enqueue_script('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js', array('jquery'), '4.0.13', true);
         wp_enqueue_style('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css');
-
-        // Enqueue admin script for settings page
-        if ('toplevel_page_smarty-pc-admin-page' === $hook) {
-            wp_enqueue_script('smarty-pc-admin-js', plugins_url('/admin/js/smarty-pc-admin.js', __FILE__), array('jquery'), null, true);
-        }
+        wp_enqueue_script('smarty-pc-admin-js', plugin_dir_url(__FILE__) . 'js/smarty-pc-admin.js', array('jquery', 'select2'), '1.0.1', true);
+        wp_enqueue_style('smarty-pc-admin-css', plugin_dir_url(__FILE__) . 'css/smarty-pc-admin.css', array(), '1.0.1');
+        wp_localize_script(
+            'smarty-pc-admin-js',
+            'smartyProductCarousel',
+            array(
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'siteUrl' => site_url(),
+                'nonce'   => wp_create_nonce('smarty_product_carousel_nonce'),
+            )
+        );
     }
     add_action('admin_enqueue_scripts', 'smarty_pc_enqueue_admin_scripts');
 }
@@ -101,41 +107,70 @@ if (!function_exists('smarty_pc_admin_page_html')) {
         ?>
         <div class="wrap">
             <h1><?php echo esc_html(__('Products Carousel | Settings', 'smarty-product-carousel')); ?></h1>
-            <form method="post" action="options.php">
-                <?php
-                wp_nonce_field('smarty_pc_save_settings_action', 'smarty_pc_settings_nonce');
-                settings_fields('smarty-pc-settings-group');
-                do_settings_sections('smarty-pc-settings-group');
-                ?>
-                
-                <h2><?php echo __('Products', 'smarty-product-carousel'); ?></h2>
-                <p><?php echo __('Select products to add to the carousel.', 'smarty-product-carousel'); ?></p>
-                <table class="form-table">
-                    <tbody>
-                        <tr>
-                            <th scope="row"><label for="smarty-pc-product-search"><?php echo esc_html__('Select Products', 'smarty-product-carousel'); ?></label></th>
-                            <td>
-                                <select id="smarty-pc-product-search" name="smarty_pc_carousel_options[products][]" multiple="multiple" style="width: 100%">
-                                <?php
-                                    foreach ($selected_products as $product_id) {
-                                        $product = wc_get_product($product_id);
-                                        
-                                        if ($product) {
-                                            // Format the option text to include both product name and ID
-                                            $option_text = sprintf('%s (ID: %d)', $product->get_name(), $product_id);
-                                            echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . esc_html($option_text) . '</option>';
-                                        }
-                                    }
-                                ?>
-                                </select>
-                                <p class="description"><?php echo esc_html__('Select products to display in the carousel.', 'smarty-product-carousel'); ?></p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <?php submit_button(); ?>
-            </form>
+            <div id="smarty-pc-settings-container">
+                <div>
+                    <form method="post" action="options.php">
+                        <?php
+                        wp_nonce_field('smarty_pc_save_settings_action', 'smarty_pc_settings_nonce');
+                        settings_fields('smarty-pc-settings-group');
+                        do_settings_sections('smarty-pc-settings-group');
+                        ?>
+                        <h2><?php echo __('Products', 'smarty-product-carousel'); ?></h2>
+                        <p><?php echo __('Select products to add to the carousel.', 'smarty-product-carousel'); ?></p>
+                        <table class="form-table">
+                            <tbody>
+                                <tr>
+                                    <th scope="row"><label for="smarty-pc-product-search"><?php echo esc_html__('Select Products', 'smarty-product-carousel'); ?></label></th>
+                                    <td>
+                                        <select id="smarty-pc-product-search" name="smarty_pc_carousel_options[products][]" multiple="multiple" style="width: 100%">
+                                        <?php
+                                            foreach ($selected_products as $product_id) {
+                                                $product = wc_get_product($product_id);
+                                                
+                                                if ($product) {
+                                                    // Format the option text to include both product name and ID
+                                                    $option_text = sprintf('%s (ID: %d)', $product->get_name(), $product_id);
+                                                    echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . esc_html($option_text) . '</option>';
+                                                }
+                                            }
+                                        ?>
+                                        </select>
+                                        <p class="description"><?php echo esc_html__('Select products to display in the carousel.', 'smarty-product-carousel'); ?></p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <?php submit_button(); ?>
+                    </form>
+                </div>
+                <div id="smarty-pc-tabs-container">
+                    <div>
+                        <h2 class="smarty-pc-nav-tab-wrapper">
+                            <a href="#smarty-pc-documentation" class="smarty-pc-nav-tab smarty-pc-nav-tab-active"><?php esc_html_e('Documentation', 'smarty-product-carousel'); ?></a>
+                            <a href="#smarty-pc-changelog" class="smarty-pc-nav-tab"><?php esc_html_e('Changelog', 'smarty-product-carousel'); ?></a>
+                        </h2>
+                        <div id="smarty-pc-documentation" class="smarty-pc-tab-content active">
+                            <div class="smarty-pc-view-more-container">
+                                <p><?php esc_html_e('Click "View More" to load the plugin documentation.', 'smarty-product-carousel'); ?></p>
+                                <button id="smarty-pc-load-readme-btn" class="button button-primary">
+                                    <?php esc_html_e('View More', 'smarty-product-carousel'); ?>
+                                </button>
+                            </div>
+                            <div id="smarty-pc-readme-content" style="margin-top: 20px;"></div>
+                        </div>
+                        <div id="smarty-pc-changelog" class="smarty-pc-tab-content">
+                            <div class="smarty-pc-view-more-container">
+                                <p><?php esc_html_e('Click "View More" to load the plugin changelog.', 'smarty-product-carousel'); ?></p>
+                                <button id="smarty-pc-load-changelog-btn" class="button button-primary">
+                                    <?php esc_html_e('View More', 'smarty-product-carousel'); ?>
+                                </button>
+                            </div>
+                            <div id="smarty-pc-changelog-content" style="margin-top: 20px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script type="text/javascript">
@@ -676,7 +711,23 @@ if (!function_exists('smarty_pc_search_products')) {
 
 if (!function_exists('smarty_pc_product_carousel_shortcode')) {
     function smarty_pc_product_carousel_shortcode($atts) {
-        global $wpdb; 
+        global $wpdb;
+
+        // Ensure WooCommerce is active and the cart is available
+        if (!function_exists('WC') || !WC()->cart || !did_action('woocommerce_init')) {
+            return ''; // Avoid executing if WooCommerce isn't fully loaded
+        }
+
+        // Prevent execution in the admin area unless it's an AJAX request
+        if (is_admin() && !wp_doing_ajax()) {
+            return '';
+        }
+
+        // Ensure WooCommerce session is active before accessing the cart
+        if (WC()->cart->is_empty()) {
+            return ''; // Avoid errors if the cart is empty
+        }
+
         $options = get_option('smarty_pc_carousel_options');
         $custom_title = $options['smarty_pc_custom_title'] ?? '';
         $plugin_slides_to_show = isset($options['smarty_pc_slides_to_show']) && is_numeric($options['smarty_pc_slides_to_show']) ? intval($options['smarty_pc_slides_to_show']) : 3;
@@ -704,6 +755,10 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                 }
             }
         } elseif ($source === 'checkout_page' || $source === 'mini_cart') {
+            if (!WC()->cart || !is_object(WC()->cart)) {
+                return ''; // Prevent errors when the cart isn't ready
+            }
+
             // Logic for checkout page and mini cart upsells
             foreach (WC()->cart->get_cart() as $cart_item) {
                 $order_product_ids[] = $cart_item['product_id'];
@@ -1379,4 +1434,66 @@ if (!function_exists('smarty_pc_hide_source_meta')) {
         return $hidden_meta_keys;
     }
     add_filter('woocommerce_hidden_order_itemmeta', 'smarty_pc_hide_source_meta');
+}
+
+if (!function_exists('smarty_pc_load_readme')) {
+    /**
+     * AJAX handler to load and parse the README.md content.
+     */
+    function smarty_pc_load_readme() {
+        check_ajax_referer('smarty_product_carousel_nonce', 'nonce');
+    
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('You do not have sufficient permissions.');
+        }
+    
+        $readme_path = plugin_dir_path(__FILE__) . 'README.md';
+        if (file_exists($readme_path)) {
+            // Include Parsedown library
+            if (!class_exists('Parsedown')) {
+                require_once plugin_dir_path(__FILE__) . 'libs/Parsedown.php';
+            }
+    
+            $parsedown = new Parsedown();
+            $markdown_content = file_get_contents($readme_path);
+            $html_content = $parsedown->text($markdown_content);
+    
+            // Remove <img> tags from the content
+            $html_content = preg_replace('/<img[^>]*>/', '', $html_content);
+    
+            wp_send_json_success($html_content);
+        } else {
+            wp_send_json_error('README.md file not found.');
+        }
+    }    
+    add_action('wp_ajax_smarty_pc_load_readme', 'smarty_pc_load_readme');
+}
+
+if (!function_exists('smarty_pc_load_changelog')) {
+    /**
+     * AJAX handler to load and parse the CHANGELOG.md content.
+     */
+    function smarty_pc_load_changelog() {
+        check_ajax_referer('smarty_product_carousel_nonce', 'nonce');
+    
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('You do not have sufficient permissions.');
+        }
+    
+        $changelog_path = plugin_dir_path(__FILE__) . 'CHANGELOG.md';
+        if (file_exists($changelog_path)) {
+            if (!class_exists('Parsedown')) {
+                require_once plugin_dir_path(__FILE__) . 'libs/Parsedown.php';
+            }
+    
+            $parsedown = new Parsedown();
+            $markdown_content = file_get_contents($changelog_path);
+            $html_content = $parsedown->text($markdown_content);
+    
+            wp_send_json_success($html_content);
+        } else {
+            wp_send_json_error('CHANGELOG.md file not found.');
+        }
+    }
+    add_action('wp_ajax_smarty_pc_load_changelog', 'smarty_pc_load_changelog');
 }
