@@ -3,7 +3,7 @@
  * Plugin Name:          SM - WooCommerce Product Carousel
  * Plugin URI:           https://github.com/mnestorov/smarty-woocommerce-product-carousel
  * Description:          A custom WooCommerce product carousel plugin.
- * Version:              1.0.2
+ * Version:              1.0.3
  * Author:               Martin Nestorov
  * Author URI:           https://github.com/mnestorov
  * License:              GPL-2.0+
@@ -733,8 +733,9 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
         }
 
         // Ensure WooCommerce session is active before accessing the cart
-        if (WC()->cart->is_empty()) {
-            return ''; // Avoid errors if the cart is empty
+        // **Skip `WC()->cart->is_empty()` check ONLY on the Thank You page**
+        if (WC()->cart->is_empty() && !is_wc_endpoint_url('order-received')) {
+            return ''; // Avoid errors if the cart is empty (except on Thank You page)
         }
 
         $options = get_option('smarty_pc_carousel_options');
@@ -1015,9 +1016,15 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                 // Reinitialize after cart updates
                 function refreshCarousel() {
                     setTimeout(function() {
-                        if ($('#smarty-pc-woo-carousel').hasClass('slick-initialized')) {
-                            $('#smarty-pc-woo-carousel').slick('unslick');
-                        }
+                        $('#smarty-pc-woo-carousel').slick({
+							slidesToShow: 3,
+							slidesToScroll: 1,
+							autoplay: true,
+							autoplaySpeed: 3000,
+							infinite: true,
+							arrows: true,
+							dots: true,
+						});
                         initSlickCarousel();
                     }, 300);
                 }
@@ -1046,16 +1053,18 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                             source: source
                         },
                         success: function(response) {
-                            if (response.success) {
-                                location.reload();
-                            } else {
-                                var errorMessage = response.data.message || 'Unknown error occurred.';
-                                alert('Error: ' + errorMessage);
-                                if (errorMessage === 'Time expired.') {
-                                    $('#smarty-pc-woo-carousel a.add_to_cart_button').hide();
-                                }
-                            }
-                        },
+							if (response.success) {
+								if (response.reload) {
+									location.reload();  // Force page reload after adding a product
+								}
+							} else {
+								var errorMessage = response.data.message || 'Unknown error occurred.';
+								alert('Error: ' + errorMessage);
+								if (errorMessage === 'Time expired.') {
+									$('#smarty-pc-woo-carousel a.add_to_cart_button').hide();
+								}
+							}
+						},
                         error: function(xhr, status, error) {
                             // console.log('AJAX request failed:', error);
                         }
@@ -1087,7 +1096,12 @@ if (!function_exists('smarty_pc_check_upsell_products_in_cart')) {
      */
     function smarty_pc_check_upsell_products_in_cart() {
         if (is_admin() && !defined('DOING_AJAX')) return;
-
+		
+		// Skip this check if we are on the Thank You page
+        if (is_wc_endpoint_url('order-received')) {
+            return;
+        }
+		
         $cart = WC()->cart->get_cart();
         $regular_product_found = false;
         $removed_items = false;  // Flag to track if any upsell items were removed
@@ -1130,38 +1144,30 @@ if (!function_exists('smarty_pc_display_carousel_for_cod')) {
         if (!$order_id) return;
 
         $order = wc_get_order($order_id);
-        if ($order->get_payment_method() == 'cod') {
-            echo do_shortcode('[smarty_pc_product_carousel slides_to_show="3" source="thankyou_page" order_id="' . esc_attr($order_id) . '"]');
+        if (!$order || is_wp_error($order)) return; // Add this check
+        if ($order->get_payment_method() !== 'cod') return; // Use strict comparison
 
-            // Add a hidden input to store the order ID
-            echo '<input type="hidden" id="order_id" value="' . esc_attr($order_id) . '">';
+        // existing code here...
+        echo do_shortcode('[smarty_pc_product_carousel source="thankyou_page" order_id="' . esc_attr($order_id) . '"]');
+        
+        echo '<input type="hidden" id="order_id" value="' . esc_attr($order_id) . '">';
 
-            // Get the order time and calculate expiry time
-            $order_time = get_post_meta($order_id, '_order_time', true);
-            $expiry_time = $order_time + 300; // 300 seconds = 5 minutes
+        $order_time = get_post_meta($order_id, '_order_time', true);
+        $expiry_time = $order_time + 300;
+        $current_time = current_time('timestamp');
 
-            // Get the current time in the WordPress timezone
-            $current_time = current_time('timestamp');
-
-            if ($current_time > $expiry_time) {
-                // Time expired message
-                echo '<p><small><strong>' . __('Time is expired:', 'smarty-product-carousel') . '</strong> ' . __('You can\'t add additional products to your order.', 'smarty-product-carousel') . '</small></p>';
-            
-                // Add JavaScript to hide the Add to Cart buttons
-                echo '<script type="text/javascript">
-                    jQuery(document).ready(function($) {
-                        $("#smarty-pc-woo-carousel a.add_to_cart_button").hide();
-                    });
-                </script>';
-            } else {
-                // Convert the expiry time to the WordPress timezone
-                $expiry_datetime = new DateTime();
-                $expiry_datetime->setTimestamp($expiry_time);
-                $expiry_time_formatted = $expiry_datetime->format('H:i:s');
-
-                // Display the expiry message
-                echo '<p><small>' . __('You can add additional products to your order until:', 'smarty-product-carousel') . ' ' . $expiry_time_formatted . '</small></p>';
-            }
+        if ($current_time > $expiry_time) {
+            echo '<p><small><strong>' . __('Time is expired:', 'smarty-product-carousel') . '</strong> ' . __('You can\'t add additional products to your order.', 'smarty-product-carousel') . '</small></p>';
+            echo '<script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    $("#smarty-pc-woo-carousel a.add_to_cart_button").hide();
+                });
+            </script>';
+        } else {
+            $expiry_datetime = new DateTime();
+            $expiry_datetime->setTimestamp($expiry_time);
+            $expiry_time_formatted = $expiry_datetime->format('H:i:s');
+            echo '<p><small>' . __('You can add additional products to your order until:', 'smarty-product-carousel') . ' ' . $expiry_time_formatted . '</small></p>';
         }
     }
     add_action('woocommerce_thankyou', 'smarty_pc_display_carousel_for_cod', 5, 1);
@@ -1175,7 +1181,7 @@ if (!function_exists('smarty_pc_add_to_order')) {
         }
 
         $product_id = intval($_POST['product_id']);
-        $order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0; // Default to 0 if not set
+        $order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0;
         $source = sanitize_text_field($_POST['source']);
 
         // Validate parameters
@@ -1191,6 +1197,11 @@ if (!function_exists('smarty_pc_add_to_order')) {
         if ($source === 'thankyou_page' && !$order) {
             wp_send_json_error(array('message' => __('Order not found.', 'smarty-product-carousel')));
         }
+
+        // Bypass upsell validation for Thank You page
+        remove_action('woocommerce_before_cart', 'smarty_pc_check_upsell_products_in_cart');
+        remove_action('woocommerce_cart_item_removed', 'smarty_pc_check_upsell_products_in_cart');
+        remove_action('woocommerce_cart_updated', 'smarty_pc_check_upsell_products_in_cart');
 
         // Check time difference for "thankyou_page" source
         if ($source === 'thankyou_page') {
@@ -1224,12 +1235,12 @@ if (!function_exists('smarty_pc_add_to_order')) {
             // Send an update email
             smarty_pc_send_order_update_email($order_id);
 
-            wp_send_json_success(array('message' => __('Product added successfully.', 'smarty-product-carousel')));
+            wp_send_json_success(array('message' => __('Product added successfully.', 'smarty-product-carousel'), 'reload' => true));
         } else {
             // For 'checkout_page' and 'mini_cart', add the product to the cart
             WC()->cart->add_to_cart($product_id);
             WC()->session->set('_source_' . $product_id, $source); // Store source in session
-            wp_send_json_success(array('message' => __('Product added to cart successfully.', 'smarty-product-carousel')));
+            wp_send_json_success(array('message' => __('Product added to cart successfully.', 'smarty-product-carousel'), 'reload' => true));
         }
     }
     add_action('wp_ajax_smarty_pc_add_to_order', 'smarty_pc_add_to_order');

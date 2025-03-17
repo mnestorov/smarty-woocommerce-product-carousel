@@ -14,3 +14,6 @@
 ### 1.0.2 (2025.02.18)
 - Removed the "Exclude" product logic from carousel, when the product is added to the cart
 - Instead of removing the product from view, we simply show a disabled "In Cart" button
+
+### 1.0.3 (2025.03.17)
+- Bux fix for the not show the carousel on the thank you page issue
