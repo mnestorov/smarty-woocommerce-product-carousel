@@ -69,6 +69,21 @@ if (!function_exists('smarty_pc_enqueue_admin_scripts')) {
     add_action('admin_enqueue_scripts', 'smarty_pc_enqueue_admin_scripts');
 }
 
+if (!function_exists('smarty_pc_enqueue_checkout_scripts')) {
+    function smarty_pc_enqueue_checkout_scripts() {
+        if (is_checkout()) {
+            wp_enqueue_script('wc-checkout', WC()->plugin_url() . '/assets/js/frontend/checkout.min.js', array('jquery', 'woocommerce'), WC_VERSION, true);
+            wp_enqueue_script('wc-add-to-cart', WC()->plugin_url() . '/assets/js/frontend/add-to-cart.min.js', array('jquery'), WC_VERSION, true);
+            // Localize AJAX URL for WooCommerce scripts
+            wp_localize_script('wc-add-to-cart', 'wc_add_to_cart_params', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'wc_ajax_url' => WC_AJAX::get_endpoint('%%endpoint%%'),
+            ));
+        }
+    }
+    add_action('wp_enqueue_scripts', 'smarty_pc_enqueue_checkout_scripts');
+}
+
 if (!function_exists('smarty_pc_add_async_attribute')) {
     function smarty_pc_add_async_attribute($tag, $handle) {
         if ('slick' === $handle || 'select2' === $handle) {
@@ -570,41 +585,35 @@ if (!function_exists('smarty_pc_custom_css_callback')) {
 if (!function_exists('smarty_pc_print_custom_css')) {
     function smarty_pc_print_custom_css() {
         $options = get_option('smarty_pc_carousel_options');
-
         echo "<style type=\"text/css\">\n";
-        // Base styles for arrows and dots with dynamic colors
         echo ".slick-prev:before, .slick-next:before { color: " . esc_attr($options['smarty_pc_arrow_color'] ?? '') . " !important; }\n";
         echo ".slick-dots li button:before { color: " . esc_attr($options['smarty_pc_dot_color'] ?? '') . " !important; }\n";
-        // Check if dots should be displayed
         if (!empty($options['smarty_pc_display_dots'])) {
             echo ".slick-dots { display: block !important; }\n";
         }
-        // Custom CSS for slide padding
         if (!empty($options['smarty_pc_slide_padding'])) {
             echo ".smarty-pc-carousel .product { padding: " . esc_attr($options['smarty_pc_slide_padding']) . "px; }\n";
         }
-
-        // Additional custom CSS styles specific to the carousel
-
         echo "
             #smarty-pc-woo-carousel.smarty-pc-carousel .product { 
                 padding: " . intval($options['smarty_pc_slide_padding'] ?? '0') . "px; 
             }
-            #smarty-pc-woo-carousel.smarty-pc-carousel button[disabled], input[disabled] {
+            #smarty-pc-woo-carousel.smarty-pc-carousel .ajax_add_to_cart.added,
+            #smarty-pc-woo-carousel.smarty-pc-carousel .ajax_add_to_cart[disabled],
+            #smarty-pc-woo-carousel.smarty-pc-carousel .ajax_add_to_cart[aria-disabled='true'] {
                 opacity: 0.6 !important;
                 cursor: not-allowed !important;
+                pointer-events: none !important; /* Prevent clicks entirely */
             }
-            #smarty-pc-woo-carousel.smarty-pc-carousel button[disabled]:hover {
+            #smarty-pc-woo-carousel.smarty-pc-carousel .ajax_add_to_cart.added:hover,
+            #smarty-pc-woo-carousel.smarty-pc-carousel .ajax_add_to_cart[disabled]:hover {
                 background: #0b100d !important;
                 opacity: 0.6 !important;
             }
         ";
-
-        // Echo additional saved custom CSS if set
         if (!empty($options['custom_css'])) {
             echo esc_attr($options['custom_css']) . "\n";
         }
-
         echo "</style>\n";
     }
     add_action('wp_head', 'smarty_pc_print_custom_css');
@@ -943,46 +952,42 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
             $in_cart = in_array($product->get_id(), $cart_product_ids, true);
 
             if ($in_cart) {
-                // Show a disabled button (or any variant of "In Cart")
-                $carousel_html .= '<button class="button add_to_cart_button disabled" disabled="disabled">'
-                                . esc_html__('In Cart', 'smarty-product-carousel')
-                                . '</button>';
+    			$carousel_html .= '<button class="button add_to_cart_button disabled" disabled="disabled">'
+                    . esc_html__('In Cart', 'smarty-product-carousel')
+                    . '</button>';
             } else {
-                // Normal Add to Cart button
-                if ($product->is_type('simple')) {
-                    $add_to_cart_url = '?add-to-cart=' . $product->get_id() . '&source=' . $source;
-                    $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) 
-                                    . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" '
-                                    . 'data-product_id="' . esc_attr($product->get_id()) . '" '
-                                    . 'data-source="' . esc_attr($source) . '">'
-                                    . esc_html($add_to_cart_text) 
-                                    . '</a>';
-                } elseif ($product->is_type('variable')) {
-                    $available_variations = $product->get_available_variations();
-                    $first_variation_id   = $available_variations[0]['variation_id'] ?? 0;
-                    if ($first_variation_id > 0) {
-                        $add_to_cart_url = '?add-to-cart=' . $product->get_id() 
-                                         . '&variation_id=' . $first_variation_id 
-                                         . '&source=' . $source;
-                        foreach ($available_variations[0]['attributes'] as $attr_key => $attr_value) {
-                            $add_to_cart_url .= '&' . $attr_key . '=' . $attr_value;
-                        }
-                        $carousel_html .= '<a href="' . esc_url(home_url($add_to_cart_url)) 
-                                        . '" id="smartyCarousel" class="button add_to_cart_button ajax_add_to_cart" '
-                                        . 'data-product_id="' . esc_attr($product->get_id()) . '" '
-                                        . 'data-source="' . esc_attr($source) . '" '
-                                        . 'data-variation_id="' . esc_attr($first_variation_id) . '">'
-                                        . esc_html($add_to_cart_text) 
-                                        . '</a>';
-                    } else {
-                        $product_url = get_permalink($product->get_id());
-                        $carousel_html .= '<a href="' . esc_url($product_url) . '?source=upsell' . '" '
-                                        . 'id="smartyCarousel" class="button">'
-                                        . esc_html__('Select Options', 'smarty-product-carousel')
-                                        . '</a>';
-                    }
-                }
-            }
+				if ($product->is_type('simple')) {
+					$carousel_html .= '<a href="' . esc_url(wc_get_cart_url() . '?add-to-cart=' . $product->get_id()) 
+									. '" class="button add_to_cart_button ajax_add_to_cart" '
+									. 'data-product_id="' . esc_attr($product->get_id()) . '" '
+									. 'data-source="' . esc_attr($source) . '">'
+									. esc_html($add_to_cart_text) 
+									. '</a>';
+				} elseif ($product->is_type('variable')) {
+					$available_variations = $product->get_available_variations();
+					$first_variation_id   = $available_variations[0]['variation_id'] ?? 0;
+					if ($first_variation_id > 0) {
+						$add_to_cart_url = '?add-to-cart=' . $product->get_id() 
+										 . '&variation_id=' . $first_variation_id;
+						foreach ($available_variations[0]['attributes'] as $attr_key => $attr_value) {
+							$add_to_cart_url .= '&' . $attr_key . '=' . $attr_value;
+						}
+						$carousel_html .= '<a href="' . esc_url(wc_get_cart_url() . $add_to_cart_url) 
+										. '" class="button add_to_cart_button ajax_add_to_cart" '
+										. 'data-product_id="' . esc_attr($product->get_id()) . '" '
+										. 'data-source="' . esc_attr($source) . '" '
+										. 'data-variation_id="' . esc_attr($first_variation_id) . '">'
+										. esc_html($add_to_cart_text) 
+										. '</a>';
+					} else {
+						$product_url = get_permalink($product->get_id());
+						$carousel_html .= '<a href="' . esc_url($product_url) . '?source=upsell' . '" '
+										. 'class="button">'
+										. esc_html__('Select Options', 'smarty-product-carousel')
+										. '</a>';
+					}
+				}
+			}
 
             $carousel_html .= '</div>'; // End .product
         }
@@ -992,6 +997,7 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
         // Initialize Slick carousel
         $carousel_html .= "<script>
             jQuery(document).ready(function($) {
+                // Initialize Slick Carousel
                 function initSlickCarousel() {
                     $('#smarty-pc-woo-carousel').not('.slick-initialized').slick({
                         speed: " . intval($speed) . ",
@@ -1010,65 +1016,140 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
                         ]
                     });
                 }
-
                 initSlickCarousel();
 
-                // Reinitialize after cart updates
-                function refreshCarousel() {
-                    setTimeout(function() {
-                        $('#smarty-pc-woo-carousel').slick({
-							slidesToShow: 3,
-							slidesToScroll: 1,
-							autoplay: true,
-							autoplaySpeed: 3000,
-							infinite: true,
-							arrows: true,
-							dots: true,
-						});
-                        initSlickCarousel();
-                    }, 300);
-                }
-
-                $(document.body).on('added_to_cart removed_from_cart updated_wc_div', function() {
-                    refreshCarousel();
-                });
-
-                $(document).on('click', '#smarty-pc-woo-carousel a.add_to_cart_button', function(e) {
-                    e.preventDefault();
-                    var product_id = $(this).data('product_id');
-                    var source = $(this).data('source');
-                    var order_id = $('#order_id').val() || 0;
-
-                    if (!product_id || !source) {
-                        return;
-                    }
-
+                // Function to update button states based on cart contents
+                function updateCarouselButtons() {
+                    console.log('Updating carousel buttons...');
                     $.ajax({
                         url: '" . admin_url('admin-ajax.php') . "',
                         type: 'POST',
                         data: {
-                            action: 'smarty_pc_add_to_order',
+                            action: 'smarty_pc_get_cart_contents'
+                        },
+                        success: function(response) {
+                            console.log('Cart contents response:', response);
+                            if (response.success && response.data.cart_contents) {
+                                var cartContents = response.data.cart_contents.map(Number);
+                                $('#smarty-pc-woo-carousel .ajax_add_to_cart').each(function() {
+                                    var \$button = $(this);
+                                    var product_id = Number(\$button.data('product_id'));
+                                    var in_cart = cartContents.includes(product_id);
+                                    console.log('Checking product ID ' + product_id + ': in_cart = ' + in_cart);
+                                    if (in_cart) {
+                                        \$button.addClass('added')
+                                            .text('" . esc_js(__('In Cart', 'smarty-product-carousel')) . "')
+                                            .prop('disabled', true)
+                                            .off('click')
+                                            .attr('aria-disabled', 'true'); // Add ARIA for accessibility
+                                    } else {
+                                        \$button.removeClass('added')
+                                            .text('" . esc_js($add_to_cart_text) . "')
+                                            .prop('disabled', false)
+                                            .removeAttr('aria-disabled');
+                                    }
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Failed to get cart contents: ' + error);
+                        }
+                    });
+                }
+
+                // Initial update on page load
+                updateCarouselButtons();
+
+                // Enhance WooCommerce AJAX with source tracking and click prevention
+                $(document.body).on('click', '#smarty-pc-woo-carousel .ajax_add_to_cart', function(e) {
+                    var \$thisbutton = $(this);
+                    var product_id = Number(\$thisbutton.data('product_id'));
+                    var in_cart = \$thisbutton.hasClass('added') || \$thisbutton.prop('disabled');
+
+                    // Prevent click if already in cart or disabled
+                    if (in_cart) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Click prevented for product ID ' + product_id + ': already in cart');
+                        return false;
+                    }
+
+                    // Mark as loading
+                    \$thisbutton.addClass('loading');
+
+                    var source = \$thisbutton.data('source');
+                    var variation_id = \$thisbutton.data('variation_id') || 0;
+
+                    // Store source in session via AJAX
+                    $.ajax({
+                        url: '" . admin_url('admin-ajax.php') . "',
+                        type: 'POST',
+                        data: {
+                            action: 'smarty_pc_set_source',
                             product_id: product_id,
-                            order_id: order_id,
                             source: source
                         },
                         success: function(response) {
-							if (response.success) {
-								if (response.reload) {
-									location.reload();  // Force page reload after adding a product
-								}
-							} else {
-								var errorMessage = response.data.message || 'Unknown error occurred.';
-								alert('Error: ' + errorMessage);
-								if (errorMessage === 'Time expired.') {
-									$('#smarty-pc-woo-carousel a.add_to_cart_button').hide();
-								}
-							}
-						},
+                            console.log('Source set for product ' + product_id + ': ' + source);
+                        },
                         error: function(xhr, status, error) {
-                            // console.log('AJAX request failed:', error);
+                            console.error('Source set failed: ' + error);
                         }
                     });
+                });
+
+                // Update button state on added_to_cart
+                $(document.body).on('added_to_cart', function(e, fragments, cart_hash, \$button) {
+                    if (\$button && \$button.closest('#smarty-pc-woo-carousel').length) {
+                        console.log('Added to cart event fired for product ID: ' + \$button.data('product_id'));
+                        \$button.removeClass('loading')
+                            .addClass('added')
+                            .text('" . esc_js(__('In Cart', 'smarty-product-carousel')) . "')
+                            .prop('disabled', true)
+                            .off('click')
+                            .attr('aria-disabled', 'true');
+
+                        // Refresh Slick if needed
+                        setTimeout(function() {
+                            if ($('#smarty-pc-woo-carousel').hasClass('slick-initialized')) {
+                                $('#smarty-pc-woo-carousel').slick('refresh');
+                            }
+                        }, 100);
+
+                        // Update all buttons immediately
+                        updateCarouselButtons();
+
+                        // Force cart refresh on checkout page
+                        if ($('body').hasClass('woocommerce-checkout')) {
+                            console.log('Triggering checkout cart refresh');
+                            $.ajax({
+                                url: '" . WC_AJAX::get_endpoint('woocommerce_update_checkout') . "',
+                                type: 'POST',
+                                data: {
+                                    security: '" . wp_create_nonce('update-checkout') . "'
+                                },
+                                success: function(response) {
+                                    console.log('Checkout updated successfully:', response);
+                                    if (response.fragments) {
+                                        $.each(response.fragments, function(key, value) {
+                                            $(key).replaceWith(value);
+                                        });
+                                    }
+                                    $(document.body).trigger('update_checkout');
+                                    setTimeout(updateCarouselButtons, 100); // Re-run after DOM update
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Checkout update failed: ' + status + ' - ' + error);
+                                }
+                            });
+                        }
+                    }
+                });
+
+                // Re-apply button states after any checkout update
+                $(document.body).on('updated_checkout', function() {
+                    console.log('Checkout DOM updated, re-applying button states');
+                    updateCarouselButtons();
                 });
             });
         </script>";
@@ -1076,6 +1157,52 @@ if (!function_exists('smarty_pc_product_carousel_shortcode')) {
         return $carousel_html;
     }
     add_shortcode('smarty_pc_product_carousel', 'smarty_pc_product_carousel_shortcode');
+}
+
+if (!function_exists('smarty_pc_get_cart_contents')) {
+    function smarty_pc_get_cart_contents() {
+        $cart_contents = array();
+        if (WC()->cart) {
+            foreach (WC()->cart->get_cart() as $cart_item) {
+                $cart_contents[] = intval($cart_item['product_id']); // Ensure IDs are integers
+            }
+        }
+        wp_send_json_success(array('cart_contents' => $cart_contents));
+    }
+    add_action('wp_ajax_smarty_pc_get_cart_contents', 'smarty_pc_get_cart_contents');
+    add_action('wp_ajax_nopriv_smarty_pc_get_cart_contents', 'smarty_pc_get_cart_contents');
+}
+if (!function_exists('smarty_pc_refresh_cart')) {
+    function smarty_pc_refresh_cart() {
+        WC()->cart->calculate_totals();
+        $fragments = array(
+            'div.woocommerce-checkout-review-order-table' => wc_cart_totals_order_review_html(),
+            '.cart_totals' => wc_cart_totals_html(),
+        );
+        wp_send_json_success(array('fragments' => $fragments));
+    }
+    add_action('wp_ajax_smarty_pc_refresh_cart', 'smarty_pc_refresh_cart');
+    add_action('wp_ajax_nopriv_smarty_pc_refresh_cart', 'smarty_pc_refresh_cart');
+}
+
+if (!function_exists('smarty_pc_set_source')) {
+    function smarty_pc_set_source() {
+        if (!isset($_POST['product_id']) || !isset($_POST['source'])) {
+            wp_send_json_error(array('message' => __('Missing parameters', 'smarty-product-carousel')));
+        }
+
+        $product_id = intval($_POST['product_id']);
+        $source = sanitize_text_field($_POST['source']);
+
+        if ($product_id > 0 && !empty($source)) {
+            WC()->session->set('_source_' . $product_id, $source);
+            wp_send_json_success();
+        } else {
+            wp_send_json_error(array('message' => __('Invalid parameters', 'smarty-product-carousel')));
+        }
+    }
+    add_action('wp_ajax_smarty_pc_set_source', 'smarty_pc_set_source');
+    add_action('wp_ajax_nopriv_smarty_pc_set_source', 'smarty_pc_set_source');
 }
 
 if (!function_exists('smarty_pc_get_cart_product_names')) {
@@ -1128,10 +1255,10 @@ if (!function_exists('smarty_pc_check_upsell_products_in_cart')) {
             }
 
             // If any upsell items were removed, add a notice to the cart
-            if ($removed_items) {
-				wc_clear_notices();
-                wc_add_notice(__('You cannot have only upsell products in the cart.', 'smarty-product-carousel'), 'error');
-            }
+            //if ($removed_items) {
+				//wc_clear_notices();
+                //wc_add_notice(__('You cannot have only upsell products in the cart.', 'smarty-product-carousel'), 'error');
+            //}
         }
     }
     add_action('woocommerce_before_cart', 'smarty_pc_check_upsell_products_in_cart');
@@ -1139,6 +1266,7 @@ if (!function_exists('smarty_pc_check_upsell_products_in_cart')) {
     add_action('woocommerce_cart_updated', 'smarty_pc_check_upsell_products_in_cart');
 }
 
+/*
 if (!function_exists('smarty_pc_display_carousel_for_cod')) {
     function smarty_pc_display_carousel_for_cod($order_id) {
         if (!$order_id) return;
@@ -1172,6 +1300,7 @@ if (!function_exists('smarty_pc_display_carousel_for_cod')) {
     }
     add_action('woocommerce_thankyou', 'smarty_pc_display_carousel_for_cod', 5, 1);
 }
+*/
 
 if (!function_exists('smarty_pc_add_to_order')) {
     function smarty_pc_add_to_order() {
