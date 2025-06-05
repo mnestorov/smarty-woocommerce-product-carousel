@@ -1606,3 +1606,10 @@ if (!function_exists('smarty_pc_load_changelog')) {
     }
     add_action('wp_ajax_smarty_pc_load_changelog', 'smarty_pc_load_changelog');
 }
+
+// Add a links on the Plugins page
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), function($links) {
+    $links[] = '<a href="' . admin_url('admin.php?page=smarty-pc-settings') . '">' . __('Settings', 'smarty-product-carousel') . '</a>';
+    $links[] = '<a href="https://github.com/mnestorov/smarty-woocommerce-product-carousel" target="_blank">' . __('GitHub', 'smarty-product-carousel') . '</a>';
+    return $links;
+});
